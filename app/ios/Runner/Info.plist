@@ -51,7 +51,15 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>ComeOver shares your live position with the room so everyone can see your distance, ETA and arrival countdown. Sharing stops when you leave the room.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>ComeOver only uses your location while the app is open and you are in a room.</string>
+	<string>ComeOver keeps sharing your position while you are in a room so the arrival countdown on your Lock Screen stays accurate, even if you switch apps or lock your phone. Sharing stops when you leave the room.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

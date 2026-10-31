@@ -54,7 +54,8 @@ void main() {
 
     final error = tester.takeException();
     expect(error, isNull, reason: 'settings sheet build threw: $error');
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Tune the room, the look, the relay.'), findsOneWidget);
+    expect(find.text('Lock-screen countdown'), findsOneWidget);
     expect(find.text('Relay'), findsWidgets);
   });
 }

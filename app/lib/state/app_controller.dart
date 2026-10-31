@@ -56,6 +56,7 @@ class AppController extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.dark;
   bool reduceGlass = false;
   bool reduceMotion = false;
+  bool liveStatusEnabled = true;
   bool? forceTv;
   bool isTelevision = false;
   String? serverOverride;
@@ -187,6 +188,7 @@ class AppController extends ChangeNotifier {
     themeMode = prefs.themeMode;
     reduceGlass = prefs.reduceGlass;
     reduceMotion = prefs.reduceMotion;
+    liveStatusEnabled = prefs.liveStatusEnabled;
     forceTv = prefs.forceTv;
     isTelevision = await detectTelevision();
     serverOverride = prefs.serverOverride;
@@ -677,6 +679,7 @@ class AppController extends ChangeNotifier {
 
   void _startWatch() {
     if (_watch != null) return;
+    _location.setBackgroundUpdates(liveStatusEnabled);
     _watch = _location.watch().listen((fix) {
       if (sharingPaused) return;
       _myFix = fix;
@@ -782,6 +785,19 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLiveStatusEnabled(bool value) async {
+    liveStatusEnabled = value;
+    await prefs.saveLiveStatusEnabled(value);
+    _location.setBackgroundUpdates(value);
+    if (isLive && _watch != null) {
+      // Restart the stream so Android starts (or stops) its foreground
+      // location service immediately instead of on the next room join.
+      _stopWatch();
+      _startWatch();
+    }
+    notifyListeners();
+  }
+
   Future<void> setForceTv(bool? value) async {
     forceTv = value;
     await prefs.saveForceTv(value);
@@ -796,7 +812,7 @@ class AppController extends ChangeNotifier {
       _config = baseConfig;
       _reconfigureClients();
       _api = ComeOverApi(config: _config);
-      _location = LocationService(config: _config);
+      _location = LocationService(config: _config)..setBackgroundUpdates(liveStatusEnabled);
       notifyListeners();
       return true;
     }
@@ -811,7 +827,7 @@ class AppController extends ChangeNotifier {
     _config = baseConfig.copyWith(serverUrl: normalized, publicUrl: normalized);
     _reconfigureClients();
     _api = ComeOverApi(config: _config);
-    _location = LocationService(config: _config);
+    _location = LocationService(config: _config)..setBackgroundUpdates(liveStatusEnabled);
     notifyListeners();
     return true;
   }

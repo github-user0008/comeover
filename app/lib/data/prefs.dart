@@ -84,6 +84,7 @@ class Prefs {
   static const _serverKey = 'settings.server';
   static const _glassKey = 'settings.reduceGlass';
   static const _motionKey = 'settings.reduceMotion';
+  static const _liveStatusKey = 'settings.liveStatus';
   static const _tvKey = 'settings.forceTv';
   static const _themeKey = 'settings.theme';
   static const _sessionKey = 'session.current';
@@ -123,6 +124,10 @@ class Prefs {
   bool get reduceMotion => _prefs.getBool(_motionKey) ?? false;
 
   Future<void> saveReduceMotion(bool value) => _prefs.setBool(_motionKey, value);
+
+  bool get liveStatusEnabled => _prefs.getBool(_liveStatusKey) ?? true;
+
+  Future<void> saveLiveStatusEnabled(bool value) => _prefs.setBool(_liveStatusKey, value);
 
   bool? get forceTv {
     if (!_prefs.containsKey(_tvKey)) return null;

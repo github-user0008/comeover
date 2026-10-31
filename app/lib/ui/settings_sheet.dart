@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../app.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
+import '../data/live_status.dart';
 import '../data/realtime.dart';
 import 'avatar_picker.dart';
 import 'expressive.dart';
@@ -265,6 +267,45 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       ],
                     ),
                   ),
+                  _section(
+                    context,
+                    title: 'Live status',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _ToggleRow(
+                          title: 'Lock-screen countdown',
+                          subtitle: 'Keeps distance, ETA and the countdown visible while you are in a room — even with the screen off.',
+                          value: app.liveStatusEnabled,
+                          onChanged: app.setLiveStatusEnabled,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 15,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _liveStatusNote(),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => LiveStatusBridge().openSettings(),
+                              child: const Text('Settings'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   if (app.room != null)
                     _section(
                       context,
@@ -408,8 +449,17 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ComeOver 0.1.0 · built for phones, tablets, Fire TV, Android TV and iPhone.',
+                          'ComeOver 0.2.0 · built for phones, tablets, Fire TV, Android TV and iPhone.',
                           style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'In a room, the arrival countdown stays on your lock screen: a Live Update on '
+                          'Android 16 (including the Samsung Now Bar) and a Live Activity with Dynamic '
+                          'Island on iOS 16.1 and newer.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -429,6 +479,16 @@ class _SettingsSheetState extends State<SettingsSheet> {
         ],
       ),
     );
+  }
+
+  String _liveStatusNote() {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return 'Shows a Live Activity on the Lock Screen and in the Dynamic Island on iOS 16.1 and newer. Allow location as “Always” so distance and ETA keep updating with the screen off.';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'Android 16 shows a Live Update chip and feeds the Samsung Now Bar. Older Android shows an ongoing notification.';
+    }
+    return 'Available on Android and iPhone. This device will keep the in-app HUD.';
   }
 
   Widget _section(BuildContext context, {required String title, required Widget child}) {

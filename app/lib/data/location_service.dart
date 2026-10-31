@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Color;
 
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
@@ -58,8 +59,17 @@ class LocationService {
   LocationFix? _last;
   bool _demoAnnounced = false;
 
+  /// When true, Android runs a foreground location service and iOS keeps
+  /// background updates on. This is what lets the lock-screen countdown stay
+  /// live while the app is backgrounded or the screen is off.
+  bool backgroundUpdates = false;
+
   LocationFix? get last => _last;
   bool get hasDemoLocation => config.demoLocation != null;
+
+  void setBackgroundUpdates(bool value) {
+    backgroundUpdates = value;
+  }
 
   /// Fire OS has no Google Play Services, so we deliberately use the platform
   /// LocationManager on Android. It also works on stock AOSP Android TV.
@@ -70,6 +80,27 @@ class LocationService {
         distanceFilter: 2,
         intervalDuration: const Duration(seconds: 2),
         forceLocationManager: true,
+        foregroundNotificationConfig: backgroundUpdates
+            ? const ForegroundNotificationConfig(
+                notificationTitle: 'ComeOver is sharing your live location',
+                notificationText: 'Your arrival countdown stays up to date on the lock screen.',
+                notificationChannelName: 'Live location',
+                notificationIcon: AndroidResource(name: 'ic_live_status', defType: 'drawable'),
+                setOngoing: true,
+                enableWakeLock: true,
+                color: Color(0xFF9BF6FF),
+              )
+            : null,
+      );
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 2,
+        allowBackgroundLocationUpdates: backgroundUpdates,
+        showBackgroundLocationIndicator: backgroundUpdates,
+        pauseLocationUpdatesAutomatically: false,
+        activityType: ActivityType.other,
       );
     }
     return const LocationSettings(

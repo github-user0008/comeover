@@ -29,6 +29,10 @@ Screenshots come from the web build in demo mode (`Watch a live demo`).
   point picker for TVs without GPS, and a wide HUD rail.
 - **Material 3 Expressive + Liquid Glass** — expressive buttons/chips/rings, layered frosted glass,
   aurora background, spring-y entrances and reduced-motion options.
+- **Lock-screen live status** — while a room is open, the arrival countdown stays visible on a
+  locked phone: a Live Update chip on Android 16 (including the Samsung Now Bar) and a Live
+  Activity with Dynamic Island on iOS 16.1+. The system ticks the countdown natively, so it keeps
+  moving even between location updates.
 - **Private by default** — rooms live in memory for six hours, invite codes are short-lived, the host
   can coarsen precision or set an arrival radius, and sharing can be paused at any time.
 - **Demo mode** — a simulated walking/driving traveller so TVs, emulators and screenshots work
@@ -212,13 +216,20 @@ flutter test
 
 - The relay is intentionally in-memory: restarting it drops every room. Put it behind a process
   manager and a persistent reverse proxy if you want it always available.
-- Location sharing runs while the app is open. A locked phone stops sending updates until the app
-  is foregrounded again; there is no background service or push notification.
+- Location sharing continues while a phone is locked because Android runs a foreground location
+  service and iOS uses background location updates for the duration of a room. The relay still has
+  to be reachable; if the phone loses the network, the map pauses until it reconnects.
+- Android 16 Live Updates are requested through a promoted ongoing notification. The user (or their
+  OEM skin) can disable promotion, in which case ComeOver falls back to an ongoing notification.
+  Samsung One UI 8.x additionally requires **Live notifications for all apps** in developer options;
+  One UI 9 / Android 17 enable third-party live notifications broadly.
+- iOS Live Activities and the WidgetKit extension compile only with macOS/Xcode. The Swift sources
+  and Xcode target are checked in, but they were not built on this Linux machine.
 - The generated release APK is signed with the debug keystore so it can be sideloaded immediately.
   Use your own keystore for any real distribution.
-- iOS was not built here (it requires macOS and Xcode), and no physical TV was attached. The TV
-  layout and d-pad flow are covered by widget tests and the web build, and the Android APK compiles,
-  but validate launcher behaviour on your own Fire TV / Android TV hardware.
+- No physical TV was attached. The TV layout and d-pad flow are covered by widget tests and the web
+  build, and the Android APK compiles, but validate launcher behaviour on your own Fire TV /
+  Android TV hardware.
 
 ## Privacy notes
 

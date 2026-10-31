@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'core/device.dart';
 import 'core/theme.dart';
+import 'data/live_status.dart';
 import 'state/app_controller.dart';
 import 'ui/screens/ended_screen.dart';
 import 'ui/screens/home_screen.dart';
@@ -52,7 +53,7 @@ class ComeOverApp extends StatefulWidget {
   State<ComeOverApp> createState() => _ComeOverAppState();
 }
 
-class _ComeOverAppState extends State<ComeOverApp> {
+class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   late final AppController _controller = widget.controller;
   String? _lastError;
@@ -63,10 +64,21 @@ class _ComeOverAppState extends State<ComeOverApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _themeMode = _controller.themeMode;
     _controller.addListener(_onChanged);
     _controller.bootstrap();
     _listenForLinks();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(LiveStatusCoordinator.instance.sync(_controller, force: true));
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      // Push one last snapshot before the OS suspends the Flutter isolate.
+      unawaited(LiveStatusCoordinator.instance.sync(_controller, force: true));
+    }
   }
 
   Future<void> _listenForLinks() async {
@@ -85,7 +97,9 @@ class _ComeOverAppState extends State<ComeOverApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _linkSubscription?.cancel();
+    unawaited(LiveStatusCoordinator.instance.shutdown());
     _controller.removeListener(_onChanged);
     _controller.dispose();
     super.dispose();
@@ -110,6 +124,7 @@ class _ComeOverAppState extends State<ComeOverApp> {
     } else if (notice == null) {
       _lastNotice = null;
     }
+    unawaited(LiveStatusCoordinator.instance.sync(_controller));
   }
 
   void _showMessage(String message, {required bool isError}) {
