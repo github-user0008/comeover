@@ -1,0 +1,26 @@
+{
+  "name": "comeover-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Realtime invites, presence and live location relay for ComeOver",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test --import tsx test/*.test.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "socket.io-client": "^4.8.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

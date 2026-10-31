@@ -1,0 +1,20 @@
+name: comeover
+
+services:
+  relay:
+    build:
+      context: ../server
+    image: comeover-relay:local
+    container_name: comeover-relay
+    restart: unless-stopped
+    init: true
+    user: "1000:1000"
+    ports:
+      # Reachable on the LAN and on the Tailscale interface. Keep this on a
+      # trusted network, or use Tailscale Serve/Funnel for HTTPS.
+      - "8787:8787"
+    environment:
+      PORT: "8787"
+      HOST: "0.0.0.0"
+      COMEOVER_VERSION: "0.1.0"
+      COMEOVER_DIRECT_PORT: "8787"

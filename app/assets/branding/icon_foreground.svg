@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <defs>
+    <linearGradient id="pin" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#C9FBFF"/>
+      <stop offset="0.55" stop-color="#9BF6FF"/>
+      <stop offset="1" stop-color="#63D8E8"/>
+    </linearGradient>
+  </defs>
+  <!-- 66dp safe zone: pin occupies roughly 52x66 around the centre -->
+  <g transform="translate(-9.2,-3.7) scale(0.1154)">
+    <path d="M548 214c-122 0-220 96-220 216 0 158 220 356 220 356s220-198 220-356c0-120-98-216-220-216z"
+          fill="url(#pin)"/>
+    <path d="M548 250c-96 0-176 75-183 170 40-58 108-96 183-96 52 0 101 18 140 49-18-70-79-123-140-123z"
+          fill="#FFFFFF" opacity="0.35"/>
+    <circle cx="548" cy="414" r="82" fill="#221531"/>
+    <circle cx="548" cy="414" r="30" fill="#9BF6FF" opacity="0.9"/>
+  </g>
+  <circle cx="30" cy="80" r="4.2" fill="#CDBDFF"/>
+  <circle cx="40" cy="75" r="2.6" fill="#CDBDFF" opacity="0.6"/>
+</svg>
