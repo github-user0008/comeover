@@ -144,14 +144,39 @@ class _ComeOverAppState extends State<ComeOverApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ComeOver',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: _themeMode,
-      scaffoldMessengerKey: _messengerKey,
-      home: AppScope(controller: _controller, child: const AppRoot()),
+    // Keep the scopes above MaterialApp so modal sheets and dialogs, which are
+    // hosted by the Navigator's overlay, can still reach them.
+    return AppScope(
+      controller: _controller,
+      child: MaterialApp(
+        title: 'ComeOver',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: _themeMode,
+        scaffoldMessengerKey: _messengerKey,
+        builder: (context, child) {
+          final controller = AppScope.of(context);
+          final profile = DeviceProfile.of(
+            context,
+            forceTv: controller.forceTv ?? (controller.isTelevision ? true : null),
+          );
+          final media = MediaQuery.of(context);
+          final scaled = profile.isTv
+              ? media.copyWith(
+                  textScaler: TextScaler.linear(media.textScaler.scale(1) * 1.06),
+                )
+              : media;
+          return DeviceScope(
+            profile: profile,
+            child: MediaQuery(
+              data: scaled,
+              child: child ?? const SizedBox.shrink(),
+            ),
+          );
+        },
+        home: const AppRoot(),
+      ),
     );
   }
 }
@@ -162,10 +187,6 @@ class AppRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = AppScope.of(context);
-    final profile = DeviceProfile.of(
-      context,
-      forceTv: controller.forceTv ?? (controller.isTelevision ? true : null),
-    );
     final dark = controller.themeMode != ThemeMode.light;
     final screen = switch (controller.stage) {
       AppStage.booting => const SplashScreen(),
@@ -177,42 +198,29 @@ class AppRoot extends StatelessWidget {
       AppStage.ended => const EndedScreen(),
     };
 
-    final media = MediaQuery.of(context);
-    final scaled = profile.isTv
-        ? media.copyWith(
-            textScaler: TextScaler.linear(media.textScaler.scale(1) * 1.06),
-          )
-        : media;
-
-    return DeviceScope(
-      profile: profile,
-      child: MediaQuery(
-        data: scaled,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          resizeToAvoidBottomInset: true,
-          body: AuroraBackground(
-            dark: dark,
-            intensity: controller.reduceGlass ? 0.65 : 1,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 480),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-                return FadeTransition(
-                  opacity: curved,
-                  child: ScaleTransition(
-                    scale: Tween<double>(begin: 0.985, end: 1).animate(curved),
-                    child: child,
-                  ),
-                );
-              },
-              child: KeyedSubtree(
-                key: ValueKey(controller.stage),
-                child: screen,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
+      body: AuroraBackground(
+        dark: dark,
+        intensity: controller.reduceGlass ? 0.65 : 1,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 480),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.985, end: 1).animate(curved),
+                child: child,
               ),
-            ),
+            );
+          },
+          child: KeyedSubtree(
+            key: ValueKey(controller.stage),
+            child: screen,
           ),
         ),
       ),

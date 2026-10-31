@@ -57,9 +57,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
   bool? _relayOk;
   String? _serverError;
 
+  bool _seeded = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_seeded) return;
+    _seeded = true;
     final app = AppScope.of(context);
     _nameController = TextEditingController(text: app.profile.name);
     _serverController = TextEditingController(text: app.serverOverride ?? app.config.serverUrl);
