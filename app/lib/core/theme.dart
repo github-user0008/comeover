@@ -277,6 +277,11 @@ class AppTheme {
   /// [systemScheme] instead and is used verbatim.
   static const _materialSeed = Color(0xFF6D4AFF);
 
+  /// Set by the app once the wallpaper palette resolves. Exposed in Settings
+  /// so it is obvious whether the build is running the Material You engine or
+  /// the fallback seed.
+  static bool deviceColoursActive = false;
+
   static ThemeData dark({
     bool highContrast = false,
     VisualLanguage? visual,
@@ -661,8 +666,9 @@ class AppTheme {
       double size,
       FontWeight weight,
       double height,
-      double tracking,
-    ) {
+      double tracking, [
+      int width = 100,
+    ]) {
       return (source ?? const TextStyle()).copyWith(
         fontFamily: family,
         fontSize: size,
@@ -672,7 +678,7 @@ class AppTheme {
         fontVariations: vary
             ? <FontVariation>[
                 FontVariation('wght', weight.value.toDouble()),
-                FontVariation('wdth', 100),
+                FontVariation('wdth', width.toDouble()),
                 FontVariation('opsz', size.clamp(14, 48).toDouble()),
               ]
             : null,
@@ -680,22 +686,40 @@ class AppTheme {
     }
 
     if (material) {
+      // Expressive display type runs wide — the signature Roboto Flex move
+      // that keeps the voice consistent across every wallpaper palette.
       return base.copyWith(
-        displayLarge: style(base.displayLarge, 66, FontWeight.w800, 0.98, -2.2),
+        displayLarge: style(
+          base.displayLarge,
+          66,
+          FontWeight.w800,
+          0.98,
+          -2.2,
+          125,
+        ),
         displayMedium: style(
           base.displayMedium,
           54,
           FontWeight.w800,
           1.0,
           -1.8,
+          120,
         ),
-        displaySmall: style(base.displaySmall, 44, FontWeight.w800, 1.02, -1.2),
+        displaySmall: style(
+          base.displaySmall,
+          44,
+          FontWeight.w800,
+          1.02,
+          -1.2,
+          115,
+        ),
         headlineLarge: style(
           base.headlineLarge,
           36,
           FontWeight.w800,
           1.08,
           -0.8,
+          112,
         ),
         headlineMedium: style(
           base.headlineMedium,
@@ -703,6 +727,7 @@ class AppTheme {
           FontWeight.w700,
           1.12,
           -0.5,
+          108,
         ),
         headlineSmall: style(
           base.headlineSmall,
@@ -710,6 +735,7 @@ class AppTheme {
           FontWeight.w700,
           1.18,
           -0.2,
+          105,
         ),
         titleLarge: style(base.titleLarge, 22, FontWeight.w700, 1.22, -0.1),
         titleMedium: style(base.titleMedium, 17, FontWeight.w600, 1.30, 0),

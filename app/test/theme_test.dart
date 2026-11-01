@@ -16,9 +16,16 @@ void main() {
     expect(style.cardRadius, 30);
     expect(style.pressScale, lessThan(0.96));
 
-    // Expressive typography uses the bundled Roboto Flex variable font.
+    // Expressive typography uses the bundled Roboto Flex variable font with a
+    // widened display axis — the unmistakable expressive move.
     expect(theme.textTheme.displayLarge?.fontFamily, 'RobotoFlex');
     expect(theme.textTheme.displayLarge?.fontVariations, isNotEmpty);
+    expect(
+      theme.textTheme.displayLarge!.fontVariations
+          ?.firstWhere((v) => v.axis == 'wdth')
+          .value,
+      greaterThan(100),
+    );
     expect(theme.textTheme.bodyLarge?.fontVariations, isNotEmpty);
 
     // Android gets a custom expressive transition, not the Cupertino slide.

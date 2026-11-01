@@ -104,6 +104,7 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
       setState(() {
         _systemDarkScheme = dark;
         _systemLightScheme = light;
+        AppTheme.deviceColoursActive = true;
       });
     } catch (_) {
       // No dynamic colour support on this build — brand palette stays.

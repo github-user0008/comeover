@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../app.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
+import '../core/version.dart';
 import '../data/live_status.dart';
 import '../data/realtime.dart';
 import 'avatar_picker.dart';
@@ -506,10 +507,24 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ComeOver 0.2.0 · built for phones, tablets, Fire TV, Android TV and iPhone.',
+                          'ComeOver ${AppMeta.version} (${AppMeta.build}) · built for phones, '
+                          'tablets, Fire TV, Android TV and iPhone.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 6),
+                        if (Theme.of(context)
+                                .extension<AppStyle>()
+                                ?.isMaterial ??
+                            false) ...[
+                          Text(
+                            AppTheme.deviceColoursActive
+                                ? 'Colours: Material You — pulled from your wallpaper.'
+                                : 'Colours: ComeOver brand — this device provides no dynamic '
+                                      'colours (needs Android 12+).',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 6),
+                        ],
                         Text(
                           'In a room, the arrival countdown stays on your lock screen: a Live Update on '
                           'Android 16 (including the Samsung Now Bar) and a Live Activity with Dynamic '
