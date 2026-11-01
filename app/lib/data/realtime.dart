@@ -7,12 +7,12 @@ enum RelayStatus { idle, connecting, connected, reconnecting, offline }
 
 extension RelayStatusLabel on RelayStatus {
   String get label => switch (this) {
-        RelayStatus.idle => 'Not connected',
-        RelayStatus.connecting => 'Connecting',
-        RelayStatus.connected => 'Live',
-        RelayStatus.reconnecting => 'Reconnecting',
-        RelayStatus.offline => 'Offline',
-      };
+    RelayStatus.idle => 'Not connected',
+    RelayStatus.connecting => 'Connecting',
+    RelayStatus.connected => 'Live',
+    RelayStatus.reconnecting => 'Reconnecting',
+    RelayStatus.offline => 'Offline',
+  };
 
   bool get isLive => this == RelayStatus.connected;
 }
@@ -39,9 +39,11 @@ class RealtimeClient {
   final String memberId;
   final String token;
 
-  final void Function(RoomModel room, List<Member> members, Member? me) onSnapshot;
+  final void Function(RoomModel room, List<Member> members, Member? me)
+  onSnapshot;
   final void Function(Member member) onMemberJoined;
-  final void Function(String memberId, MemberLocation location) onMemberLocation;
+  final void Function(String memberId, MemberLocation location)
+  onMemberLocation;
   final void Function(String memberId, bool online) onMemberPresence;
   final void Function(String memberId) onMemberLeft;
   final void Function(RoomSettings settings) onSettings;
@@ -62,11 +64,7 @@ class RealtimeClient {
       config.serverUrl,
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth({
-            'roomId': roomId,
-            'memberId': memberId,
-            'token': token,
-          })
+          .setAuth({'roomId': roomId, 'memberId': memberId, 'token': token})
           .enableReconnection()
           .setReconnectionAttempts(30)
           .setReconnectionDelay(800)
@@ -129,7 +127,10 @@ class RealtimeClient {
       if (id.isEmpty || raw is! Map) return;
       onMemberLocation(
         id,
-        MemberLocation.fromJson(raw.cast<String, dynamic>(), receivedAt: DateTime.now()),
+        MemberLocation.fromJson(
+          raw.cast<String, dynamic>(),
+          receivedAt: DateTime.now(),
+        ),
       );
     });
 

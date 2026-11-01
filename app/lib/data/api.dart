@@ -32,8 +32,11 @@ class JoinPreview {
 }
 
 class ComeOverApi {
-  ComeOverApi({required this.config, http.Client? client, this.timeout = const Duration(seconds: 12)})
-      : _client = client ?? http.Client();
+  ComeOverApi({
+    required this.config,
+    http.Client? client,
+    this.timeout = const Duration(seconds: 12),
+  }) : _client = client ?? http.Client();
 
   final AppConfig config;
   final http.Client _client;
@@ -90,15 +93,11 @@ class ComeOverApi {
     double? arrivalRadius,
     String? units,
   }) async {
-    await _post(
-      '/api/rooms/${Uri.encodeComponent(code)}/settings',
-      {
-        'precision': ?precision,
-        'arrivalRadius': ?arrivalRadius,
-        'units': ?units,
-      },
-      token: token,
-    );
+    await _post('/api/rooms/${Uri.encodeComponent(code)}/settings', {
+      'precision': ?precision,
+      'arrivalRadius': ?arrivalRadius,
+      'units': ?units,
+    }, token: token);
   }
 
   Future<Member> startDemoTraveller({
@@ -108,15 +107,11 @@ class ComeOverApi {
     String mode = 'walk',
     String? name,
   }) async {
-    final body = await _post(
-      '/api/rooms/${Uri.encodeComponent(code)}/demo',
-      {
-        'distanceM': distanceMeters,
-        'mode': mode,
-        'name': ?name,
-      },
-      token: token,
-    );
+    final body = await _post('/api/rooms/${Uri.encodeComponent(code)}/demo', {
+      'distanceM': distanceMeters,
+      'mode': mode,
+      'name': ?name,
+    }, token: token);
     return Member.fromJson(_map(body['member']));
   }
 
@@ -125,11 +120,18 @@ class ComeOverApi {
     required String token,
     required String memberId,
   }) async {
-    await _delete('/api/rooms/${Uri.encodeComponent(code)}/members/${Uri.encodeComponent(memberId)}', token: token);
+    await _delete(
+      '/api/rooms/${Uri.encodeComponent(code)}/members/${Uri.encodeComponent(memberId)}',
+      token: token,
+    );
   }
 
   Future<void> endRoom({required String code, required String token}) async {
-    await _post('/api/rooms/${Uri.encodeComponent(code)}/end', {}, token: token);
+    await _post(
+      '/api/rooms/${Uri.encodeComponent(code)}/end',
+      {},
+      token: token,
+    );
   }
 
   Future<void> leaveRoom({
@@ -159,9 +161,15 @@ class ComeOverApi {
       final response = await _client.get(_uri(path)).timeout(timeout);
       return _decode(response);
     } on TimeoutException {
-      throw const ApiException('The relay took too long to answer.', code: 'timeout');
+      throw const ApiException(
+        'The relay took too long to answer.',
+        code: 'timeout',
+      );
     } on http.ClientException {
-      throw const ApiException("Can't reach the relay. Check the server address.", code: 'network');
+      throw const ApiException(
+        "Can't reach the relay. Check the server address.",
+        code: 'network',
+      );
     }
   }
 
@@ -183,23 +191,34 @@ class ComeOverApi {
           .timeout(timeout);
       return _decode(response);
     } on TimeoutException {
-      throw const ApiException('The relay took too long to answer.', code: 'timeout');
+      throw const ApiException(
+        'The relay took too long to answer.',
+        code: 'timeout',
+      );
     } on http.ClientException {
-      throw const ApiException("Can't reach the relay. Check the server address.", code: 'network');
+      throw const ApiException(
+        "Can't reach the relay. Check the server address.",
+        code: 'network',
+      );
     }
   }
 
   Future<Map<String, dynamic>> _delete(String path, {String? token}) async {
     try {
-      final response = await _client.delete(
-        _uri(path),
-        headers: {'x-member-token': ?token},
-      ).timeout(timeout);
+      final response = await _client
+          .delete(_uri(path), headers: {'x-member-token': ?token})
+          .timeout(timeout);
       return _decode(response);
     } on TimeoutException {
-      throw const ApiException('The relay took too long to answer.', code: 'timeout');
+      throw const ApiException(
+        'The relay took too long to answer.',
+        code: 'timeout',
+      );
     } on http.ClientException {
-      throw const ApiException("Can't reach the relay. Check the server address.", code: 'network');
+      throw const ApiException(
+        "Can't reach the relay. Check the server address.",
+        code: 'network',
+      );
     }
   }
 
@@ -213,7 +232,8 @@ class ComeOverApi {
     }
     if (response.statusCode >= 400) {
       throw ApiException(
-        (body['error'] as String?) ?? 'The relay returned ${response.statusCode}.',
+        (body['error'] as String?) ??
+            'The relay returned ${response.statusCode}.',
         code: (body['code'] as String?) ?? 'http',
         status: response.statusCode,
       );

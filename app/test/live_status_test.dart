@@ -25,24 +25,19 @@ Member member({
   required bool isHost,
   LatLng? point,
   DateTime? receivedAt,
-}) =>
-    Member(
-      id: id,
-      name: name,
-      avatar: isHost ? '🏠' : '🐼',
-      colorHex: '#CDBDFF',
-      isHost: isHost,
-      online: true,
-      location: point == null
-          ? null
-          : MemberLocation(
-              point: point,
-              accuracy: 6,
-              timestamp: receivedAt ?? now,
-            ),
-      receivedAt: point == null ? null : (receivedAt ?? now),
-      hasLocation: point != null,
-    );
+}) => Member(
+  id: id,
+  name: name,
+  avatar: isHost ? '🏠' : '🐼',
+  colorHex: '#CDBDFF',
+  isHost: isHost,
+  online: true,
+  location: point == null
+      ? null
+      : MemberLocation(point: point, accuracy: 6, timestamp: receivedAt ?? now),
+  receivedAt: point == null ? null : (receivedAt ?? now),
+  hasLocation: point != null,
+);
 
 Future<AppController> controllerWith({
   required Member me,
@@ -78,7 +73,12 @@ void main() {
   });
 
   test('travelling snapshot carries distance, ETA and countdown', () async {
-    final me = member(id: 'host', name: 'Maya Chen', isHost: true, point: const LatLng(51.5007, -0.1246));
+    final me = member(
+      id: 'host',
+      name: 'Maya Chen',
+      isHost: true,
+      point: const LatLng(51.5007, -0.1246),
+    );
     final guest = member(
       id: 'guest',
       name: 'Sam Rivera',
@@ -104,7 +104,12 @@ void main() {
   });
 
   test('arrived snapshot switches to the door message', () async {
-    final me = member(id: 'host', name: 'Maya Chen', isHost: true, point: const LatLng(51.5007, -0.1246));
+    final me = member(
+      id: 'host',
+      name: 'Maya Chen',
+      isHost: true,
+      point: const LatLng(51.5007, -0.1246),
+    );
     final guest = member(
       id: 'guest',
       name: 'Sam Rivera',
@@ -123,7 +128,12 @@ void main() {
   });
 
   test('waiting snapshot names the person who has not shared yet', () async {
-    final me = member(id: 'host', name: 'Maya Chen', isHost: true, point: const LatLng(51.5007, -0.1246));
+    final me = member(
+      id: 'host',
+      name: 'Maya Chen',
+      isHost: true,
+      point: const LatLng(51.5007, -0.1246),
+    );
     final guest = member(id: 'guest', name: 'Sam Rivera', isHost: false);
     final app = await controllerWith(me: me, members: [guest]);
     final snapshot = buildLiveStatus(app);
@@ -136,7 +146,12 @@ void main() {
   });
 
   test('waiting snapshot explains the invite when the room is empty', () async {
-    final me = member(id: 'host', name: 'Maya Chen', isHost: true, point: const LatLng(51.5007, -0.1246));
+    final me = member(
+      id: 'host',
+      name: 'Maya Chen',
+      isHost: true,
+      point: const LatLng(51.5007, -0.1246),
+    );
     final app = await controllerWith(me: me, members: const []);
     final snapshot = buildLiveStatus(app);
 
@@ -145,31 +160,39 @@ void main() {
     expect(snapshot.shortText, 'Live');
   });
 
-  test('signature ignores the ticking clock but notices real changes', () async {
-    final me = member(id: 'host', name: 'Maya Chen', isHost: true, point: const LatLng(51.5007, -0.1246));
-    final guest = member(
-      id: 'guest',
-      name: 'Sam Rivera',
-      isHost: false,
-      point: const LatLng(51.5057, -0.1246),
-    );
-    final app = await controllerWith(me: me, members: [guest]);
-    final first = buildLiveStatus(app);
-
-    app.now = now.add(const Duration(seconds: 1));
-    final second = buildLiveStatus(app);
-    expect(second.signature, first.signature);
-
-    app.members = [
-      me,
-      member(
+  test(
+    'signature ignores the ticking clock but notices real changes',
+    () async {
+      final me = member(
+        id: 'host',
+        name: 'Maya Chen',
+        isHost: true,
+        point: const LatLng(51.5007, -0.1246),
+      );
+      final guest = member(
         id: 'guest',
         name: 'Sam Rivera',
         isHost: false,
-        point: const LatLng(51.5047, -0.1246),
-      ),
-    ];
-    final third = buildLiveStatus(app);
-    expect(third.signature, isNot(first.signature));
-  });
+        point: const LatLng(51.5057, -0.1246),
+      );
+      final app = await controllerWith(me: me, members: [guest]);
+      final first = buildLiveStatus(app);
+
+      app.now = now.add(const Duration(seconds: 1));
+      final second = buildLiveStatus(app);
+      expect(second.signature, first.signature);
+
+      app.members = [
+        me,
+        member(
+          id: 'guest',
+          name: 'Sam Rivera',
+          isHost: false,
+          point: const LatLng(51.5047, -0.1246),
+        ),
+      ];
+      final third = buildLiveStatus(app);
+      expect(third.signature, isNot(first.signature));
+    },
+  );
 }

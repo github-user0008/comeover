@@ -25,22 +25,31 @@ class LocationFix {
   final double? battery;
 
   LocationFix shifted(LatLng next) => LocationFix(
-        point: next,
-        accuracy: accuracy,
-        timestamp: timestamp,
-        heading: heading,
-        speed: speed,
-        battery: battery,
-      );
+    point: next,
+    accuracy: accuracy,
+    timestamp: timestamp,
+    heading: heading,
+    speed: speed,
+    battery: battery,
+  );
 
   /// Approximate mode: snap to a ~110 m grid so exact home addresses leak less.
-  LocationFix coarsened() => shifted(LatLng(
-        (point.latitude * 100).round() / 100,
-        (point.longitude * 100).round() / 100,
-      ));
+  LocationFix coarsened() => shifted(
+    LatLng(
+      (point.latitude * 100).round() / 100,
+      (point.longitude * 100).round() / 100,
+    ),
+  );
 }
 
-enum LocationState { unknown, granted, denied, deniedForever, serviceDisabled, unsupported }
+enum LocationState {
+  unknown,
+  granted,
+  denied,
+  deniedForever,
+  serviceDisabled,
+  unsupported,
+}
 
 class LocationResult {
   const LocationResult(this.state, [this.fix]);
@@ -85,10 +94,13 @@ class LocationService {
                 notificationTitle: 'ComeOver is sharing your live location',
                 notificationText: 'Your arrival countdown stays up to date on the lock screen.',
                 notificationChannelName: 'Live location',
-                notificationIcon: AndroidResource(name: 'ic_live_status', defType: 'drawable'),
+                notificationIcon: AndroidResource(
+                  name: 'ic_live_status',
+                  defType: 'drawable',
+                ),
                 setOngoing: true,
                 enableWakeLock: true,
-                color: Color(0xFF9BF6FF),
+                color: Color(0xFF7DD7B9),
               )
             : null,
       );
@@ -121,7 +133,10 @@ class LocationService {
     if (kIsWeb) {
       // Browsers only expose geolocation on secure origins.
       final uri = Uri.base;
-      final secure = uri.scheme == 'https' || uri.host == 'localhost' || uri.host == '127.0.0.1';
+      final secure =
+          uri.scheme == 'https' ||
+          uri.host == 'localhost' ||
+          uri.host == '127.0.0.1';
       if (!secure) return const LocationResult(LocationState.unsupported);
     }
     try {
@@ -145,8 +160,9 @@ class LocationService {
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition(locationSettings: _settings)
-          .timeout(const Duration(seconds: 12));
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: _settings,
+      ).timeout(const Duration(seconds: 12));
       final fix = _fromPosition(position);
       _last = fix;
       return LocationResult(LocationState.granted, fix);
@@ -174,15 +190,16 @@ class LocationService {
     _subscription?.cancel();
     final controller = StreamController<LocationFix>.broadcast();
     try {
-      _subscription = Geolocator.getPositionStream(locationSettings: _settings).listen(
-        (position) {
-          final fix = _fromPosition(position);
-          _last = fix;
-          if (!controller.isClosed) controller.add(fix);
-        },
-        onError: (Object _) {},
-        cancelOnError: false,
-      );
+      _subscription = Geolocator.getPositionStream(locationSettings: _settings)
+          .listen(
+            (position) {
+              final fix = _fromPosition(position);
+              _last = fix;
+              if (!controller.isClosed) controller.add(fix);
+            },
+            onError: (Object _) {},
+            cancelOnError: false,
+          );
     } catch (_) {
       // Permission revoked mid-session, or platform without location support.
     }
@@ -217,12 +234,12 @@ class LocationService {
   void dispose() => stop();
 
   LocationFix _fromPosition(Position position) => LocationFix(
-        point: LatLng(position.latitude, position.longitude),
-        accuracy: position.accuracy,
-        timestamp: position.timestamp,
-        heading: position.heading >= 0 ? position.heading : null,
-        speed: position.speed >= 0 ? position.speed : null,
-      );
+    point: LatLng(position.latitude, position.longitude),
+    accuracy: position.accuracy,
+    timestamp: position.timestamp,
+    heading: position.heading >= 0 ? position.heading : null,
+    speed: position.speed >= 0 ? position.speed : null,
+  );
 
   LocationFix _demoFix({double drift = 0}) {
     final seed = config.demoLocation!;

@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 
-/// Animated night-sky backdrop. Two liquid blobs drift behind a soft vignette;
-/// glass surfaces above it pick up the colour and blur.
+/// Animated backdrop. Android gets a vivid, faster-moving Material 3
+/// Expressive wash; Apple platforms get a slow, low-chroma graphite haze so the
+/// glass surfaces above it stay the star.
 class AuroraBackground extends StatefulWidget {
   const AuroraBackground({
     super.key,
@@ -22,11 +23,25 @@ class AuroraBackground extends StatefulWidget {
   State<AuroraBackground> createState() => _AuroraBackgroundState();
 }
 
-class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerProviderStateMixin {
+class _AuroraBackgroundState extends State<AuroraBackground>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 26),
   )..repeat();
+  bool _periodApplied = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_periodApplied) return;
+    _periodApplied = true;
+    final period = AppStyle.of(context).backgroundPeriod;
+    if (period != _controller.duration) {
+      _controller.duration = period;
+      _controller.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -37,10 +52,12 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final style = AppStyle.of(context);
     final painter = _AuroraPainter(
       t: reduceMotion ? 0.35 : _controller.value,
       dark: widget.dark,
       intensity: widget.intensity,
+      style: style,
     );
     return Stack(
       fit: StackFit.expand,
@@ -48,7 +65,8 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
         RepaintBoundary(
           child: AnimatedBuilder(
             animation: _controller,
-            builder: (context, _) => CustomPaint(painter: painter, isComplex: true),
+            builder: (context, _) =>
+                CustomPaint(painter: painter, isComplex: true),
           ),
         ),
         widget.child,
@@ -58,94 +76,212 @@ class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerPr
 }
 
 class _AuroraPainter extends CustomPainter {
-  _AuroraPainter({required this.t, required this.dark, required this.intensity});
+  _AuroraPainter({
+    required this.t,
+    required this.dark,
+    required this.intensity,
+    required this.style,
+  });
 
   final double t;
   final bool dark;
   final double intensity;
+  final AppStyle style;
 
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final base = dark ? Palette.ink : const Color(0xFFFDF9FF);
+    final base = dark
+        ? style.background
+        : Color.lerp(style.background, Colors.white, 0.45)!;
     canvas.drawRect(rect, Paint()..color = base);
 
     final angle = t * math.pi * 2;
     final minDim = size.shortestSide;
 
+    if (style.isMaterial) {
+      _paintMaterial(canvas, size, minDim, angle, base);
+    } else {
+      _paintLiquid(canvas, size, minDim, angle, base);
+    }
+  }
+
+  void _paintMaterial(
+    Canvas canvas,
+    Size size,
+    double minDim,
+    double angle,
+    Color base,
+  ) {
+    final strength = intensity * style.auroraStrength;
     if (dark) {
       _blob(
         canvas,
         size,
         center: Offset(
-          size.width * (0.78 + math.sin(angle) * 0.08),
-          size.height * (0.08 + math.cos(angle * 0.8) * 0.05),
+          size.width * (0.82 + math.sin(angle) * 0.09),
+          size.height * (0.04 + math.cos(angle * 0.8) * 0.06),
+        ),
+        radius: minDim * 1.05,
+        color: style.auroraPrimary.withValues(alpha: 0.62 * strength),
+      );
+      _blob(
+        canvas,
+        size,
+        center: Offset(
+          size.width * (0.08 + math.cos(angle * 0.7) * 0.11),
+          size.height * (0.90 + math.sin(angle * 0.9) * 0.07),
         ),
         radius: minDim * 0.95,
-        color: Palette.violet.withValues(alpha: 0.55 * intensity),
+        color: style.auroraSecondary.withValues(alpha: 0.40 * strength),
       );
       _blob(
         canvas,
         size,
         center: Offset(
-          size.width * (0.12 + math.cos(angle * 0.7) * 0.10),
-          size.height * (0.86 + math.sin(angle * 0.9) * 0.06),
+          size.width * (0.46 + math.sin(angle * 0.5 + 2) * 0.24),
+          size.height * (0.46 + math.cos(angle * 0.6) * 0.20),
         ),
-        radius: minDim * 0.85,
-        color: const Color(0xFF16C7DA).withValues(alpha: 0.30 * intensity),
+        radius: minDim * 0.62,
+        color: style.auroraTertiary.withValues(alpha: 0.24 * strength),
       );
       _blob(
         canvas,
         size,
-        center: Offset(
-          size.width * (0.45 + math.sin(angle * 0.5 + 2) * 0.22),
-          size.height * (0.42 + math.cos(angle * 0.6) * 0.18),
-        ),
-        radius: minDim * 0.55,
-        color: const Color(0xFFFF7E5F).withValues(alpha: 0.16 * intensity),
+        center: Offset(size.width * 0.62, size.height * 1.08),
+        radius: minDim * 0.78,
+        color: style.brand.withValues(alpha: 0.38 * strength),
       );
-      _blob(
-        canvas,
-        size,
-        center: Offset(size.width * 0.6, size.height * 1.1),
-        radius: minDim * 0.7,
-        color: const Color(0xFF4E2A84).withValues(alpha: 0.55),
-      );
-      // Vignette so the glass edges stay legible.
       canvas.drawRect(
-        rect,
+        rectFor(size),
         Paint()
           ..shader = RadialGradient(
             center: Alignment.center,
             radius: 1.05,
-            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.55)],
-            stops: const [0.45, 1],
-          ).createShader(rect),
+            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.42)],
+            stops: const [0.48, 1],
+          ).createShader(rectFor(size)),
+      );
+      // Expressive top light keeps the first screen from feeling muddy.
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, size.width, size.height * 0.42),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withValues(alpha: 0.07 * strength),
+              Colors.transparent,
+            ],
+          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.42)),
       );
     } else {
       _blob(
         canvas,
         size,
-        center: Offset(size.width * 0.85, size.height * 0.1),
-        radius: minDim,
-        color: const Color(0xFFD9CCFF).withValues(alpha: 0.9),
+        center: Offset(size.width * 0.86, size.height * 0.08),
+        radius: minDim * 1.1,
+        color: style.auroraPrimary.withValues(alpha: 0.24 * strength),
       );
       _blob(
         canvas,
         size,
-        center: Offset(size.width * 0.08, size.height * 0.92),
-        radius: minDim,
-        color: const Color(0xFFBDF3F8).withValues(alpha: 0.8),
+        center: Offset(size.width * 0.06, size.height * 0.94),
+        radius: minDim * 1.05,
+        color: style.auroraSecondary.withValues(alpha: 0.20 * strength),
       );
       _blob(
         canvas,
         size,
-        center: Offset(size.width * 0.45, size.height * 0.5),
-        radius: minDim * 0.7,
-        color: const Color(0xFFFFE3D9).withValues(alpha: 0.55),
+        center: Offset(size.width * 0.48, size.height * 0.48),
+        radius: minDim * 0.8,
+        color: style.auroraTertiary.withValues(alpha: 0.14 * strength),
       );
     }
   }
+
+  void _paintLiquid(
+    Canvas canvas,
+    Size size,
+    double minDim,
+    double angle,
+    Color base,
+  ) {
+    final strength = intensity * style.auroraStrength;
+    if (dark) {
+      _blob(
+        canvas,
+        size,
+        center: Offset(
+          size.width * (0.78 + math.sin(angle * 0.6) * 0.05),
+          size.height * (0.10 + math.cos(angle * 0.5) * 0.04),
+        ),
+        radius: minDim * 1.35,
+        color: style.auroraPrimary.withValues(alpha: 0.30 * strength),
+      );
+      _blob(
+        canvas,
+        size,
+        center: Offset(
+          size.width * (0.12 + math.cos(angle * 0.45) * 0.06),
+          size.height * (0.88 + math.sin(angle * 0.55) * 0.04),
+        ),
+        radius: minDim * 1.25,
+        color: style.auroraSecondary.withValues(alpha: 0.24 * strength),
+      );
+      _blob(
+        canvas,
+        size,
+        center: Offset(size.width * 0.5, size.height * 0.5),
+        radius: minDim * 0.8,
+        color: style.auroraTertiary.withValues(alpha: 0.10 * strength),
+      );
+      // Quiet filmic vignette.
+      canvas.drawRect(
+        rectFor(size),
+        Paint()
+          ..shader = RadialGradient(
+            center: Alignment.center,
+            radius: 1.15,
+            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.45)],
+            stops: const [0.38, 1],
+          ).createShader(rectFor(size)),
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, size.width, size.height * 0.35),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white.withValues(alpha: 0.055), Colors.transparent],
+          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.35)),
+      );
+    } else {
+      _blob(
+        canvas,
+        size,
+        center: Offset(size.width * 0.82, size.height * 0.12),
+        radius: minDim * 1.25,
+        color: style.auroraPrimary.withValues(alpha: 0.16 * strength),
+      );
+      _blob(
+        canvas,
+        size,
+        center: Offset(size.width * 0.10, size.height * 0.90),
+        radius: minDim * 1.2,
+        color: style.auroraSecondary.withValues(alpha: 0.13 * strength),
+      );
+      _blob(
+        canvas,
+        size,
+        center: Offset(size.width * 0.5, size.height * 0.55),
+        radius: minDim * 0.75,
+        color: Colors.white.withValues(alpha: 0.55),
+      );
+    }
+  }
+
+  Rect rectFor(Size size) => Offset.zero & size;
 
   void _blob(
     Canvas canvas,
@@ -168,7 +304,10 @@ class _AuroraPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_AuroraPainter old) =>
-      old.t != t || old.dark != dark || old.intensity != intensity;
+      old.t != t ||
+      old.dark != dark ||
+      old.intensity != intensity ||
+      old.style != style;
 }
 
 /// Page wrapper: overscan-safe padding and a max content width for big TVs.

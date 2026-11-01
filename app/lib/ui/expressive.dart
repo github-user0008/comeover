@@ -6,6 +6,7 @@ import '../core/format.dart';
 import '../core/motion.dart';
 import '../core/theme.dart';
 import '../models/member.dart';
+import 'glass.dart';
 
 Color colorFromHex(String hex, [Color fallback = Palette.lavender]) {
   var value = hex.replaceAll('#', '');
@@ -52,31 +53,56 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
+    final material = style.isMaterial;
     final enabled = widget.onPressed != null;
     final (bg, fg, border) = switch (widget.tone) {
       ExpressiveTone.filled => (
-          [scheme.primary, Color.lerp(scheme.primary, scheme.secondary, 0.35)!],
-          scheme.onPrimary,
-          Colors.white.withValues(alpha: 0.45),
-        ),
+        material
+            ? [
+                scheme.primary,
+                Color.lerp(scheme.primary, scheme.secondary, 0.45)!,
+              ]
+            : [
+                scheme.primary.withValues(alpha: 0.94),
+                Color.lerp(scheme.primary, scheme.primaryContainer, 0.55)!,
+              ],
+        scheme.onPrimary,
+        material ? Colors.transparent : Colors.white.withValues(alpha: 0.22),
+      ),
       ExpressiveTone.tonal => (
-          [scheme.surfaceContainerHigh, scheme.surfaceContainerHighest],
-          scheme.onSurface,
-          scheme.outlineVariant.withValues(alpha: 0.8),
-        ),
+        [scheme.surfaceContainerHigh, scheme.surfaceContainerHighest],
+        scheme.onSurface,
+        style.chipBorder,
+      ),
       ExpressiveTone.glass => (
-          [Colors.white.withValues(alpha: 0.20), Colors.white.withValues(alpha: 0.08)],
-          scheme.onSurface,
-          Colors.white.withValues(alpha: 0.30),
-        ),
+        material
+            ? [
+                scheme.surfaceContainerHigh.withValues(alpha: 0.72),
+                scheme.surfaceContainer.withValues(alpha: 0.45),
+              ]
+            : [
+                Colors.white.withValues(alpha: 0.22),
+                Colors.white.withValues(alpha: 0.08),
+              ],
+        scheme.onSurface,
+        material ? style.chipBorder : Colors.white.withValues(alpha: 0.24),
+      ),
       ExpressiveTone.danger => (
-          [const Color(0xFF6B2B2B), const Color(0xFF8C3A32)],
-          const Color(0xFFFFDAD4),
-          const Color(0xFFFFB4AB).withValues(alpha: 0.6),
-        ),
+        [
+          scheme.errorContainer,
+          Color.lerp(scheme.errorContainer, scheme.error, 0.18)!,
+        ],
+        scheme.onErrorContainer,
+        scheme.error.withValues(alpha: 0.35),
+      ),
     };
 
-    final scale = !enabled ? 1.0 : _pressed ? 0.965 : (_focused ? 1.025 : 1.0);
+    final scale = !enabled
+        ? 1.0
+        : _pressed
+        ? style.pressScale
+        : (_focused ? (material ? 1.025 : 1.008) : 1.0);
 
     final content = Row(
       mainAxisSize: widget.expanded ? MainAxisSize.max : MainAxisSize.min,
@@ -100,7 +126,7 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
     final button = AnimatedScale(
       scale: scale,
       duration: Motion.fast,
-      curve: Motion.overshoot,
+      curve: material ? Motion.overshoot : Motion.standard,
       child: AnimatedContainer(
         duration: Motion.fast,
         curve: Motion.emphasizedDecelerate,
@@ -109,25 +135,35 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(widget.height / 2),
+          borderRadius: BorderRadius.circular(style.buttonRadius),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: bg,
           ),
-          border: Border.all(color: _focused ? scheme.secondary : border, width: _focused ? 2 : 1),
-          boxShadow: [
-            BoxShadow(
-              color: scheme.primary.withValues(alpha: _focused ? 0.42 : (_hovered ? 0.22 : 0.12)),
-              blurRadius: _focused ? 34 : 22,
-              offset: const Offset(0, 10),
-            ),
-            const BoxShadow(
-              color: Colors.black26,
-              blurRadius: 20,
-              offset: Offset(0, 8),
-            ),
-          ],
+          border: Border.all(
+            color: _focused ? scheme.secondary : border,
+            width: _focused ? 2 : 1,
+          ),
+          boxShadow: material
+              ? [
+                  BoxShadow(
+                    color: scheme.primary.withValues(
+                      alpha: _focused ? 0.42 : (_hovered ? 0.24 : 0.16),
+                    ),
+                    blurRadius: _focused ? 34 : 22,
+                    offset: const Offset(0, 10),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(
+                      alpha: _focused ? 0.28 : 0.20,
+                    ),
+                    blurRadius: _focused ? 28 : 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
         ),
         child: content,
       ),
@@ -154,7 +190,9 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
             onFocusChange: (value) => setState(() => _focused = value),
             onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
             onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
-            onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+            onTapCancel: enabled
+                ? () => setState(() => _pressed = false)
+                : null,
             splashColor: fg.withValues(alpha: 0.16),
             highlightColor: Colors.transparent,
             customBorder: const StadiumBorder(),
@@ -194,35 +232,68 @@ class _GlassIconButtonState extends State<GlassIconButton> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final content = AnimatedContainer(
-      duration: Motion.fast,
-      width: widget.size,
-      height: widget.size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.10),
-        border: Border.all(
-          color: _focused ? scheme.secondary : Colors.white.withValues(alpha: 0.24),
-          width: _focused ? 2 : 1,
-        ),
-        boxShadow: [
-          if (_focused)
-            BoxShadow(color: scheme.secondary.withValues(alpha: 0.4), blurRadius: 22),
-        ],
-      ),
-      child: Icon(widget.icon, size: widget.size * 0.44, color: widget.tone ?? scheme.onSurface),
+    final style = AppStyle.of(context);
+    final tone = widget.tone;
+    final icon = Icon(
+      widget.icon,
+      size: widget.size * 0.44,
+      color: tone ?? scheme.onSurface,
     );
 
-    Widget result = Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        autofocus: widget.autofocus,
+    Widget result;
+    if (style.isLiquid) {
+      result = Glass(
+        borderRadius: widget.size / 2,
+        blur: 20,
+        padding: EdgeInsets.zero,
         onTap: widget.onPressed,
-        onFocusChange: (value) => setState(() => _focused = value),
-        child: content,
-      ),
-    );
+        tint: tone,
+        child: SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Center(child: icon),
+        ),
+      );
+    } else {
+      final content = AnimatedContainer(
+        duration: Motion.fast,
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: scheme.surfaceContainerHigh,
+          border: Border.all(
+            color: _focused ? scheme.primary : style.chipBorder,
+            width: _focused ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: _focused ? 0.28 : 0.16),
+              blurRadius: _focused ? 24 : 16,
+              offset: const Offset(0, 8),
+            ),
+            if (_focused)
+              BoxShadow(
+                color: scheme.primary.withValues(alpha: 0.38),
+                blurRadius: 22,
+              ),
+          ],
+        ),
+        child: Center(child: icon),
+      );
+
+      result = Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          autofocus: widget.autofocus,
+          onTap: widget.onPressed,
+          onFocusChange: (value) => setState(() => _focused = value),
+          child: content,
+        ),
+      );
+    }
+
     if (widget.tooltip != null) {
       result = Tooltip(message: widget.tooltip!, child: result);
     }
@@ -239,14 +310,15 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Row(
       children: [
         Text(
           text.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                letterSpacing: 1.6,
-              ),
+            color: scheme.onSurfaceVariant,
+            letterSpacing: style.isMaterial ? 1.6 : 1.25,
+          ),
         ),
         if (trailing != null) ...[const Spacer(), trailing!],
       ],
@@ -255,25 +327,31 @@ class SectionLabel extends StatelessWidget {
 }
 
 class GradientText extends StatelessWidget {
-  const GradientText(
-    this.text, {
-    super.key,
-    required this.style,
-    this.colors = const [Color(0xFFF6F0FF), Palette.lavender, Palette.mint],
-  });
+  const GradientText(this.text, {super.key, required this.style, this.colors});
 
   final String text;
   final TextStyle? style;
-  final List<Color> colors;
+  final List<Color>? colors;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final appStyle = AppStyle.of(context);
+    final palette =
+        colors ??
+        (appStyle.isMaterial
+            ? [scheme.onSurface, scheme.primary, scheme.secondary]
+            : [
+                scheme.onSurface,
+                Color.lerp(scheme.onSurface, scheme.primary, 0.55)!,
+                scheme.onSurfaceVariant,
+              ]);
     return ShaderMask(
       blendMode: BlendMode.srcIn,
       shaderCallback: (bounds) => LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: colors,
+        colors: palette,
         stops: const [0, 0.55, 1],
       ).createShader(bounds),
       child: Text(text, style: style),
@@ -299,6 +377,7 @@ class AvatarBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = colorFromHex(member.colorHex);
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return SizedBox(
       width: size,
       height: size,
@@ -313,11 +392,18 @@ class AvatarBubble extends StatelessWidget {
               gradient: RadialGradient(
                 center: const Alignment(-0.3, -0.4),
                 colors: [
-                  Color.lerp(color, Colors.white, 0.35)!.withValues(alpha: 0.95),
+                  Color.lerp(
+                    color,
+                    Colors.white,
+                    0.35,
+                  )!.withValues(alpha: 0.95),
                   color.withValues(alpha: 0.75),
                 ],
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 1.5),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.55),
+                width: 1.5,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: glow ? 0.55 : 0.28),
@@ -341,7 +427,7 @@ class AvatarBubble extends StatelessWidget {
                 height: size * 0.28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: member.online ? const Color(0xFF7BE495) : scheme.outline,
+                  color: member.online ? style.live : scheme.outline,
                   border: Border.all(color: scheme.surface, width: 2),
                 ),
               ),
@@ -353,9 +439,9 @@ class AvatarBubble extends StatelessWidget {
 }
 
 class LiveDot extends StatefulWidget {
-  const LiveDot({super.key, this.color = Palette.mint, this.size = 8});
+  const LiveDot({super.key, this.color, this.size = 8});
 
-  final Color color;
+  final Color? color;
   final double size;
 
   @override
@@ -376,6 +462,7 @@ class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.color ?? AppStyle.of(context).live;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -392,7 +479,7 @@ class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
                   height: widget.size * (1 + t * 2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: widget.color.withValues(alpha: 0.5),
+                    color: color.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -401,8 +488,13 @@ class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
                 height: widget.size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: widget.color,
-                  boxShadow: [BoxShadow(color: widget.color.withValues(alpha: 0.8), blurRadius: 10)],
+                  color: color,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.8),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -420,7 +512,7 @@ class ProgressRing extends StatelessWidget {
     required this.size,
     this.stroke = 8,
     this.child,
-    this.colors = const [Palette.mint, Palette.lavender, Palette.peach],
+    this.colors,
     this.trackColor,
   });
 
@@ -428,12 +520,22 @@ class ProgressRing extends StatelessWidget {
   final double size;
   final double stroke;
   final Widget? child;
-  final List<Color> colors;
+  final List<Color>? colors;
   final Color? trackColor;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
+    final ringColors =
+        colors ??
+        (style.isMaterial
+            ? [scheme.secondary, scheme.primary, scheme.tertiary]
+            : [
+                style.live,
+                Color.lerp(scheme.onSurface, scheme.primary, 0.45)!,
+                scheme.onSurfaceVariant,
+              ]);
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: value.clamp(0, 1)),
       duration: Motion.slow,
@@ -445,8 +547,10 @@ class ProgressRing extends StatelessWidget {
             painter: _RingPainter(
               value: animated,
               stroke: stroke,
-              colors: colors,
-              track: trackColor ?? scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              colors: ringColors,
+              track:
+                  trackColor ??
+                  scheme.surfaceContainerHighest.withValues(alpha: 0.5),
             ),
             child: Center(child: child),
           ),
@@ -544,13 +648,13 @@ class TogglePill<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh.withValues(alpha: 0.6),
+        color: style.chipFill,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: style.chipBorder),
       ),
       child: Row(
         mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
@@ -571,7 +675,11 @@ class TogglePill<T> extends StatelessWidget {
 }
 
 class _ToggleItem<T> extends StatefulWidget {
-  const _ToggleItem({required this.option, required this.selected, required this.onTap});
+  const _ToggleItem({
+    required this.option,
+    required this.selected,
+    required this.onTap,
+  });
 
   final ToggleOption<T> option;
   final bool selected;
@@ -596,7 +704,7 @@ class _ToggleItemState<T> extends State<_ToggleItem<T>> {
         child: AnimatedContainer(
           duration: Motion.fast,
           curve: Motion.emphasizedDecelerate,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: widget.selected ? scheme.primary : Colors.transparent,
@@ -613,15 +721,24 @@ class _ToggleItemState<T> extends State<_ToggleItem<T>> {
                 Icon(
                   widget.option.icon,
                   size: 16,
-                  color: widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant,
+                  color: widget.selected
+                      ? scheme.onPrimary
+                      : scheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 6),
               ],
-              Text(
-                widget.option.label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant,
-                    ),
+              Flexible(
+                child: Text(
+                  widget.option.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: widget.selected
+                        ? scheme.onPrimary
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ],
           ),
@@ -640,22 +757,25 @@ class RemoteHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        );
+    final style = AppStyle.of(context);
+    final textStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         for (final label in labels)
           Container(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 9 : 11, vertical: compact ? 4 : 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 9 : 11,
+              vertical: compact ? 4 : 6,
             ),
-            child: Text(label, style: style),
+            decoration: BoxDecoration(
+              color: style.chipFill,
+              borderRadius: BorderRadius.circular(style.isMaterial ? 10 : 8),
+              border: Border.all(color: style.chipBorder),
+            ),
+            child: Text(label, style: textStyle),
           ),
       ],
     );
@@ -678,6 +798,9 @@ class Keycap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
+    final material = style.isMaterial;
+    final fg = highlight ? scheme.onPrimary : scheme.onSurface;
     return AnimatedContainer(
       duration: Motion.medium,
       curve: Motion.emphasizedDecelerate,
@@ -685,15 +808,27 @@ class Keycap extends StatelessWidget {
       height: size * 1.2,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.32),
+        borderRadius: BorderRadius.circular(
+          material ? size * 0.36 : size * 0.28,
+        ),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: highlight
-              ? [scheme.primary, Color.lerp(scheme.primary, scheme.secondary, 0.4)!]
-              : [Colors.white.withValues(alpha: 0.16), Colors.white.withValues(alpha: 0.06)],
+              ? [
+                  scheme.primary,
+                  Color.lerp(scheme.primary, scheme.secondary, 0.4)!,
+                ]
+              : material
+              ? [scheme.surfaceContainerHighest, scheme.surfaceContainerHigh]
+              : [
+                  Colors.white.withValues(alpha: 0.16),
+                  Colors.white.withValues(alpha: 0.06),
+                ],
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.30)),
+        border: Border.all(
+          color: highlight ? Colors.transparent : style.chipBorder,
+        ),
         boxShadow: [
           BoxShadow(
             color: highlight
@@ -707,10 +842,9 @@ class Keycap extends StatelessWidget {
       child: Text(
         character,
         style: TextStyle(
-          fontFamily: 'Figtree',
           fontSize: size * 0.5,
           fontWeight: FontWeight.w800,
-          color: highlight ? scheme.onPrimary : scheme.onSurface,
+          color: fg,
         ),
       ),
     );
@@ -743,10 +877,8 @@ class StatValue extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                letterSpacing: 1.4,
-              ),
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: scheme.onSurfaceVariant, letterSpacing: 1.4),
         ),
         const SizedBox(height: 4),
         Row(
@@ -758,19 +890,16 @@ class StatValue extends StatelessWidget {
                 value,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: accent ?? scheme.onSurface,
-                      fontSize: 38,
-                    ),
+                style: Theme.of(context).textTheme.displaySmall
+                    ?.copyWith(color: accent ?? scheme.onSurface, fontSize: 38),
               ),
             ),
             if (unit != null) ...[
               const SizedBox(width: 6),
               Text(
                 unit!,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ],
           ],
@@ -780,13 +909,15 @@ class StatValue extends StatelessWidget {
             sub!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
       ],
     );
   }
 }
 
-String memberFirstName(Member member) => member.name.split(RegExp(r'\s+')).first;
+String memberFirstName(Member member) =>
+    member.name.split(RegExp(r'\s+')).first;
 
 String memberInitials(Member member) => initialsFor(member.name);

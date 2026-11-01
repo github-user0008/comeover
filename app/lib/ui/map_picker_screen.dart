@@ -63,14 +63,18 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   void _nudge(double dx, double dy) {
     final scale = 0.0025 * (16 / _zoom.clamp(3, 19));
-    _moveTo(LatLng(
-      (_center.latitude + dy * scale).clamp(-85, 85),
-      ((_center.longitude + dx * scale + 540) % 360) - 180,
-    ));
+    _moveTo(
+      LatLng(
+        (_center.latitude + dy * scale).clamp(-85, 85),
+        ((_center.longitude + dx * scale + 540) % 360) - 180,
+      ),
+    );
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowLeft:
         _nudge(-1, 0);
@@ -99,9 +103,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   Widget build(BuildContext context) {
     final device = DeviceScope.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
 
     return Scaffold(
-      backgroundColor: Palette.ink,
+      backgroundColor: style.ink,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -112,7 +117,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               initialZoom: _zoom,
               minZoom: 3,
               maxZoom: 19,
-              backgroundColor: Palette.ink,
+              backgroundColor: style.ink,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
@@ -146,18 +151,20 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Palette.ink.withValues(alpha: 0.72),
+                    style.ink.withValues(alpha: 0.72),
                     Colors.transparent,
                     Colors.transparent,
-                    Palette.ink.withValues(alpha: 0.82),
+                    style.ink.withValues(alpha: 0.82),
                   ],
                   stops: const [0, 0.22, 0.62, 1],
                 ),
               ),
             ),
           ),
-          const Positioned.fill(
-            child: IgnorePointer(child: Center(child: _Crosshair())),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Center(child: _Crosshair(color: style.live)),
+            ),
           ),
           SafeArea(
             child: Focus(
@@ -165,7 +172,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               autofocus: device.isTv,
               onKeyEvent: _onKey,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: device.isTv ? 44 : 16, vertical: 14),
+                padding: EdgeInsets.symmetric(
+                  horizontal: device.isTv ? 44 : 16,
+                  vertical: 14,
+                ),
                 child: Column(
                   children: [
                     Row(
@@ -183,7 +193,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                           ),
                         ),
                         if (device.isTv)
-                          const RemoteHint(labels: ['◀ ▶ move', 'OK confirm'], compact: true),
+                          const RemoteHint(
+                            labels: ['◀ ▶ move', 'OK confirm'],
+                            compact: true,
+                          ),
                       ],
                     ),
                     const Spacer(),
@@ -196,12 +209,17 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.pin_drop_outlined, size: 20, color: Palette.mint),
+                              Icon(
+                                Icons.pin_drop_outlined,
+                                size: 20,
+                                color: style.live,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   'Drag the map or use the remote to place the pin.',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
                                         color: scheme.onSurfaceVariant,
                                       ),
                                 ),
@@ -211,7 +229,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                           const SizedBox(height: 10),
                           Text(
                             '${_center.latitude.toStringAsFixed(5)}, ${_center.longitude.toStringAsFixed(5)}',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
                                   letterSpacing: 1,
                                   color: scheme.onSurfaceVariant,
                                 ),
@@ -222,13 +241,15 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                               GlassIconButton(
                                 icon: Icons.zoom_in_rounded,
                                 tooltip: 'Zoom in',
-                                onPressed: () => _moveTo(_center, (_zoom + 1).clamp(3, 19)),
+                                onPressed: () =>
+                                    _moveTo(_center, (_zoom + 1).clamp(3, 19)),
                               ),
                               const SizedBox(width: 8),
                               GlassIconButton(
                                 icon: Icons.zoom_out_rounded,
                                 tooltip: 'Zoom out',
-                                onPressed: () => _moveTo(_center, (_zoom - 1).clamp(3, 19)),
+                                onPressed: () =>
+                                    _moveTo(_center, (_zoom - 1).clamp(3, 19)),
                               ),
                               const SizedBox(width: 8),
                               GlassIconButton(
@@ -266,19 +287,25 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 }
 
 class _Crosshair extends StatelessWidget {
-  const _Crosshair();
+  const _Crosshair({required this.color});
+
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 96,
       height: 96,
-      child: CustomPaint(painter: _CrosshairPainter()),
+      child: CustomPaint(painter: _CrosshairPainter(color)),
     );
   }
 }
 
 class _CrosshairPainter extends CustomPainter {
+  _CrosshairPainter(this.color);
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
@@ -295,7 +322,7 @@ class _CrosshairPainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(center, 16, shadow);
 
-    final dot = Paint()..color = Palette.mint;
+    final dot = Paint()..color = color;
     canvas.drawCircle(center, 4, dot);
 
     final arm = Paint()
@@ -309,5 +336,5 @@ class _CrosshairPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CrosshairPainter old) => false;
+  bool shouldRepaint(_CrosshairPainter old) => old.color != color;
 }

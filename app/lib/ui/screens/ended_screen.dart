@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app.dart';
 import '../../core/format.dart';
+import '../../core/theme.dart';
 import '../../models/member.dart';
 import '../../state/app_controller.dart';
 import '../aurora_background.dart';
@@ -27,7 +28,10 @@ class EndedScreen extends StatelessWidget {
     return PageFrame(
       maxWidth: 760,
       alignment: Alignment.center,
-      padding: EdgeInsets.symmetric(horizontal: device.isTv ? 44 : 18, vertical: 18),
+      padding: EdgeInsets.symmetric(
+        horizontal: device.isTv ? 44 : 18,
+        vertical: 18,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -55,9 +59,8 @@ class EndedScreen extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               app.endedReason ?? 'The room is closed.',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: scheme.onSurfaceVariant,
-                                  ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -112,9 +115,8 @@ class EndedScreen extends StatelessWidget {
                   Text(
                     'Location sharing has stopped. The relay forgets this room when the invite expires — '
                     'nothing is written to a database.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -147,7 +149,9 @@ class EndedScreen extends StatelessWidget {
             ),
             if (device.isTv) ...[
               const SizedBox(height: 16),
-              const Center(child: RemoteHint(labels: ['OK select', '← back home'])),
+              const Center(
+                child: RemoteHint(labels: ['OK select', '← back home']),
+              ),
             ],
           ],
         ),
@@ -166,7 +170,11 @@ class EndedScreen extends StatelessWidget {
 }
 
 class _Summary extends StatelessWidget {
-  const _Summary({required this.label, required this.value, required this.icon});
+  const _Summary({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
@@ -175,12 +183,13 @@ class _Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: style.chipFill,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        border: Border.all(color: style.chipBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,10 +205,8 @@ class _Summary extends StatelessWidget {
           const SizedBox(height: 1),
           Text(
             label.toUpperCase(),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.1,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant, letterSpacing: 1.1),
           ),
         ],
       ),

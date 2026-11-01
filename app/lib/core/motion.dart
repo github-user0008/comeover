@@ -34,8 +34,12 @@ class SpringScale extends StatefulWidget {
   State<SpringScale> createState() => _SpringScaleState();
 }
 
-class _SpringScaleState extends State<SpringScale> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController.unbounded(vsync: this, value: 1);
+class _SpringScaleState extends State<SpringScale>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController.unbounded(
+    vsync: this,
+    value: 1,
+  );
 
   @override
   void dispose() {
@@ -57,13 +61,12 @@ class _SpringScaleState extends State<SpringScale> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Listener(
-      onPointerDown: widget.enabled ? (_) => _animateTo(widget.pressedScale) : null,
+      onPointerDown: widget.enabled
+          ? (_) => _animateTo(widget.pressedScale)
+          : null,
       onPointerUp: widget.enabled ? (_) => _animateTo(1) : null,
       onPointerCancel: widget.enabled ? (_) => _animateTo(1) : null,
-      child: ScaleTransition(
-        scale: _controller,
-        child: widget.child,
-      ),
+      child: ScaleTransition(scale: _controller, child: widget.child),
     );
   }
 }
@@ -114,7 +117,10 @@ class _RiseInState extends State<RiseIn> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final curved = CurvedAnimation(parent: _controller, curve: Motion.emphasizedDecelerate);
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Motion.emphasizedDecelerate,
+    );
     return AnimatedBuilder(
       animation: curved,
       builder: (context, child) {
@@ -149,9 +155,12 @@ class AmbientDrift extends StatefulWidget {
   State<AmbientDrift> createState() => _AmbientDriftState();
 }
 
-class _AmbientDriftState extends State<AmbientDrift> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: widget.period)..repeat();
+class _AmbientDriftState extends State<AmbientDrift>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  )..repeat();
 
   @override
   void dispose() {

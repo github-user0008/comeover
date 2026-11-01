@@ -48,9 +48,12 @@ class _HostLobbyScreenState extends State<HostLobbyScreen> {
 
   Future<void> _share(BuildContext context) async {
     final app = AppScope.of(context);
-    final text = 'Come over — join me on ComeOver.\n\nCode: ${app.roomCode}\n${app.inviteLink}';
+    final text =
+        'Come over — join me on ComeOver.\n\nCode: ${app.roomCode}\n${app.inviteLink}';
     try {
-      await SharePlus.instance.share(ShareParams(text: text, subject: 'Come over'));
+      await SharePlus.instance.share(
+        ShareParams(text: text, subject: 'Come over'),
+      );
     } catch (_) {
       if (!context.mounted) return;
       await _copy(context, text, 'Invite copied to clipboard');
@@ -63,10 +66,18 @@ class _HostLobbyScreenState extends State<HostLobbyScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Close the room?'),
-        content: const Text('Everyone loses the live view immediately and the invite stops working.'),
+        content: const Text(
+          'Everyone loses the live view immediately and the invite stops working.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep it open')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Close room')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep it open'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Close room'),
+          ),
         ],
       ),
     );
@@ -83,7 +94,9 @@ class _HostLobbyScreenState extends State<HostLobbyScreen> {
     final room = app.room;
     if (room == null) return const SizedBox.shrink();
     final expiresIn = room.expiresAt.difference(DateTime.now());
-    final expiry = expiresIn.isNegative ? 'expired' : formatDuration(expiresIn, precise: false);
+    final expiry = expiresIn.isNegative
+        ? 'expired'
+        : formatDuration(expiresIn, precise: false);
 
     return PageFrame(
       maxWidth: 1160,
@@ -118,25 +131,50 @@ class _HostLobbyScreenState extends State<HostLobbyScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 6, child: _InviteCard(app: app, device: device, onShare: _share, onCopy: _copy)),
+                  Expanded(
+                    flex: 6,
+                    child: _InviteCard(
+                      app: app,
+                      device: device,
+                      onShare: _share,
+                      onCopy: _copy,
+                    ),
+                  ),
                   const SizedBox(width: 22),
-                  Expanded(flex: 4, child: _WaitingCard(app: app, device: device, expiry: expiry)),
+                  Expanded(
+                    flex: 4,
+                    child: _WaitingCard(
+                      app: app,
+                      device: device,
+                      expiry: expiry,
+                    ),
+                  ),
                 ],
               )
             else ...[
-              _InviteCard(app: app, device: device, onShare: _share, onCopy: _copy),
+              _InviteCard(
+                app: app,
+                device: device,
+                onShare: _share,
+                onCopy: _copy,
+              ),
               const SizedBox(height: 16),
               _WaitingCard(app: app, device: device, expiry: expiry),
             ],
             const SizedBox(height: 20),
             Row(
               children: [
-                Icon(Icons.lock_outline_rounded, size: 15, color: scheme.onSurfaceVariant),
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 15,
+                  color: scheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'No account needed. Your guest sees only this room while it is open.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -179,19 +217,23 @@ class _InviteCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Send them the code.',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: device.isTv ? 34 : 28),
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(fontSize: device.isTv ? 34 : 28),
             ),
             const SizedBox(height: 6),
             Text(
               'They type it in, share their location, and you both see the ETA.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 22),
             if (wideEnoughForQr)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _CodeBlock(code: code, onCopy: onCopy)),
+                  Expanded(
+                    child: _CodeBlock(code: code, onCopy: onCopy),
+                  ),
                   const SizedBox(width: 18),
                   _Qr(link: app.inviteLink, size: device.isTv ? 168 : 132),
                 ],
@@ -219,23 +261,28 @@ class _InviteCard extends StatelessWidget {
                   icon: Icons.copy_rounded,
                   tooltip: 'Copy link',
                   size: device.isTv ? 56 : 52,
-                  onPressed: () => onCopy(context, app.inviteLink, 'Invite link copied'),
+                  onPressed: () =>
+                      onCopy(context, app.inviteLink, 'Invite link copied'),
                 ),
               ],
             ),
             const SizedBox(height: 14),
             Row(
               children: [
-                Icon(Icons.link_rounded, size: 15, color: scheme.onSurfaceVariant),
+                Icon(
+                  Icons.link_rounded,
+                  size: 15,
+                  color: scheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: SelectableText(
                     app.inviteLink,
                     maxLines: 1,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          letterSpacing: 0.2,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ],
@@ -270,9 +317,8 @@ class _CodeBlock extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           'Tap the code to copy',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 8),
         TextButton.icon(
@@ -293,6 +339,7 @@ class _Qr extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = AppStyle.of(context);
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -300,7 +347,7 @@ class _Qr extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Palette.violet.withValues(alpha: 0.35),
+            color: style.brand.withValues(alpha: 0.35),
             blurRadius: 30,
             offset: const Offset(0, 12),
           ),
@@ -312,10 +359,10 @@ class _Qr extends StatelessWidget {
         size: size,
         backgroundColor: Colors.white,
         padding: EdgeInsets.zero,
-        eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Palette.ink),
-        dataModuleStyle: const QrDataModuleStyle(
+        eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: style.ink),
+        dataModuleStyle: QrDataModuleStyle(
           dataModuleShape: QrDataModuleShape.square,
-          color: Palette.ink,
+          color: style.ink,
         ),
       ),
     );
@@ -323,7 +370,11 @@ class _Qr extends StatelessWidget {
 }
 
 class _WaitingCard extends StatelessWidget {
-  const _WaitingCard({required this.app, required this.device, required this.expiry});
+  const _WaitingCard({
+    required this.app,
+    required this.device,
+    required this.expiry,
+  });
 
   final AppController app;
   final DeviceProfile device;
@@ -349,14 +400,26 @@ class _WaitingCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [scheme.primary, scheme.secondary.withValues(alpha: 0.8)],
+                  colors: [
+                    scheme.primary,
+                    scheme.secondary.withValues(alpha: 0.8),
+                  ],
                 ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  width: 2,
+                ),
                 boxShadow: [
-                  BoxShadow(color: scheme.primary.withValues(alpha: 0.5), blurRadius: 30),
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.5),
+                    blurRadius: 30,
+                  ),
                 ],
               ),
-              child: Text(app.profile.avatar, style: TextStyle(fontSize: device.isTv ? 42 : 34, height: 1)),
+              child: Text(
+                app.profile.avatar,
+                style: TextStyle(fontSize: device.isTv ? 42 : 34, height: 1),
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -377,7 +440,8 @@ class _WaitingCard extends StatelessWidget {
           Text(
             'Keep this screen open. You will jump straight into the live view the moment they join.',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 18),
           Row(
@@ -396,13 +460,15 @@ class _WaitingCard extends StatelessWidget {
             Text(
               'No location yet — your guest will still appear, but distance needs your point.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Palette.lemon),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: AppStyle.of(context).caution),
             ),
           ],
           const SizedBox(height: 10),
           Text(
             'Invite expires in $expiry',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

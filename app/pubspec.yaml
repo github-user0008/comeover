@@ -35,3 +35,8 @@ flutter:
         - asset: assets/fonts/Figtree.ttf
         - asset: assets/fonts/Figtree-Italic.ttf
           style: italic
+    # Material 3 Expressive typeface on Android. Variable axes are applied
+    # through TextStyle.fontVariations in lib/core/theme.dart.
+    - family: RobotoFlex
+      fonts:
+        - asset: assets/fonts/RobotoFlex.ttf

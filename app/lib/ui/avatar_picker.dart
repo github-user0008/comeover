@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/motion.dart';
+import '../core/theme.dart';
 
 const profileAvatars = ['🦊', '🐼', '🐙', '🦄', '🐸', '🦁', '🐧', '🦉'];
 
@@ -62,6 +63,7 @@ class _AvatarChoiceState extends State<_AvatarChoice> {
 
   @override
   Widget build(BuildContext context) {
+    final style = AppStyle.of(context);
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -78,11 +80,11 @@ class _AvatarChoiceState extends State<_AvatarChoice> {
             shape: BoxShape.circle,
             color: widget.selected
                 ? widget.scheme.primary.withValues(alpha: 0.22)
-                : Colors.white.withValues(alpha: 0.05),
+                : style.chipFill,
             border: Border.all(
               color: widget.selected
                   ? widget.scheme.primary
-                  : (_focused ? widget.scheme.secondary : Colors.white.withValues(alpha: 0.12)),
+                  : (_focused ? widget.scheme.secondary : style.chipBorder),
               width: widget.selected || _focused ? 2 : 1,
             ),
             boxShadow: [
@@ -93,7 +95,10 @@ class _AvatarChoiceState extends State<_AvatarChoice> {
                 ),
             ],
           ),
-          child: Text(widget.avatar, style: TextStyle(fontSize: widget.size * 0.46, height: 1)),
+          child: Text(
+            widget.avatar,
+            style: TextStyle(fontSize: widget.size * 0.46, height: 1),
+          ),
         ),
       ),
     );

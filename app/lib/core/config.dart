@@ -66,11 +66,11 @@ class AppConfig {
     const preview = bool.fromEnvironment('COMEOVER_PREVIEW');
 
     final fallback = _defaultServer();
-    final server = _trimSlash(serverOverride.isNotEmpty ? serverOverride : fallback);
+    final server = _trimSlash(
+      serverOverride.isNotEmpty ? serverOverride : fallback,
+    );
     final public = _trimSlash(
-      publicOverride.isNotEmpty
-          ? publicOverride
-          : (kIsWeb ? server : server),
+      publicOverride.isNotEmpty ? publicOverride : (kIsWeb ? server : server),
     );
 
     ({double lat, double lng})? demo;
@@ -98,7 +98,9 @@ class AppConfig {
     if (kIsWeb) {
       // The dashboard is usually served from the same origin as the relay.
       final origin = Uri.base.origin;
-      if (origin != 'null' && origin.isNotEmpty && !origin.startsWith('file:')) {
+      if (origin != 'null' &&
+          origin.isNotEmpty &&
+          !origin.startsWith('file:')) {
         return origin;
       }
       return 'http://localhost:8787';
@@ -114,14 +116,14 @@ class AppConfig {
       value.endsWith('/') ? value.substring(0, value.length - 1) : value;
 
   AppConfig copyWith({String? serverUrl, String? publicUrl}) => AppConfig(
-        serverUrl: serverUrl ?? this.serverUrl,
-        publicUrl: publicUrl ?? this.publicUrl,
-        isWeb: isWeb,
-        isAndroid: isAndroid,
-        isIOS: isIOS,
-        demoLocation: demoLocation,
-        previewMode: previewMode,
-      );
+    serverUrl: serverUrl ?? this.serverUrl,
+    publicUrl: publicUrl ?? this.publicUrl,
+    isWeb: isWeb,
+    isAndroid: isAndroid,
+    isIOS: isIOS,
+    demoLocation: demoLocation,
+    previewMode: previewMode,
+  );
 
   String inviteLink(String code) => '$publicUrl/j/$code';
 }

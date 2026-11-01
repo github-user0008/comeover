@@ -19,9 +19,9 @@ class AppProfile {
   Map<String, dynamic> toJson() => {'name': name, 'avatar': avatar};
 
   static AppProfile fromJson(Map<String, dynamic> json) => AppProfile(
-        name: (json['name'] as String?) ?? '',
-        avatar: (json['avatar'] as String?) ?? '🦊',
-      );
+    name: (json['name'] as String?) ?? '',
+    avatar: (json['avatar'] as String?) ?? '🦊',
+  );
 }
 
 class StoredSession {
@@ -44,13 +44,13 @@ class StoredSession {
   bool get isExpired => DateTime.now().isAfter(expiresAt);
 
   Map<String, dynamic> toJson() => {
-        'roomId': roomId,
-        'code': code,
-        'memberId': memberId,
-        'token': token,
-        'expiresAt': expiresAt.millisecondsSinceEpoch,
-        'role': role,
-      };
+    'roomId': roomId,
+    'code': code,
+    'memberId': memberId,
+    'token': token,
+    'expiresAt': expiresAt.millisecondsSinceEpoch,
+    'role': role,
+  };
 
   static StoredSession? fromJson(Map<String, dynamic> json) {
     final roomId = json['roomId'] as String?;
@@ -58,7 +58,11 @@ class StoredSession {
     final memberId = json['memberId'] as String?;
     final token = json['token'] as String?;
     final expires = (json['expiresAt'] as num?)?.toInt();
-    if (roomId == null || code == null || memberId == null || token == null || expires == null) {
+    if (roomId == null ||
+        code == null ||
+        memberId == null ||
+        token == null ||
+        expires == null) {
       return null;
     }
     return StoredSession(
@@ -90,12 +94,13 @@ class Prefs {
   static const _sessionKey = 'session.current';
   static const _recentKey = 'rooms.recent';
 
-  static Future<Prefs> load() async => Prefs._(await SharedPreferences.getInstance());
+  static Future<Prefs> load() async =>
+      Prefs._(await SharedPreferences.getInstance());
 
   AppProfile get profile => AppProfile(
-        name: _prefs.getString(_nameKey) ?? '',
-        avatar: _prefs.getString(_avatarKey) ?? '🦊',
-      );
+    name: _prefs.getString(_nameKey) ?? '',
+    avatar: _prefs.getString(_avatarKey) ?? '🦊',
+  );
 
   Future<void> saveProfile(AppProfile profile) async {
     await _prefs.setString(_nameKey, profile.name);
@@ -123,11 +128,13 @@ class Prefs {
 
   bool get reduceMotion => _prefs.getBool(_motionKey) ?? false;
 
-  Future<void> saveReduceMotion(bool value) => _prefs.setBool(_motionKey, value);
+  Future<void> saveReduceMotion(bool value) =>
+      _prefs.setBool(_motionKey, value);
 
   bool get liveStatusEnabled => _prefs.getBool(_liveStatusKey) ?? true;
 
-  Future<void> saveLiveStatusEnabled(bool value) => _prefs.setBool(_liveStatusKey, value);
+  Future<void> saveLiveStatusEnabled(bool value) =>
+      _prefs.setBool(_liveStatusKey, value);
 
   bool? get forceTv {
     if (!_prefs.containsKey(_tvKey)) return null;
@@ -151,14 +158,17 @@ class Prefs {
     };
   }
 
-  Future<void> saveThemeMode(ThemeMode mode) => _prefs.setString(_themeKey, mode.name);
+  Future<void> saveThemeMode(ThemeMode mode) =>
+      _prefs.setString(_themeKey, mode.name);
 
   StoredSession? get session {
     final raw = _prefs.getString(_sessionKey);
     if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is Map) return StoredSession.fromJson(decoded.cast<String, dynamic>());
+      if (decoded is Map) {
+        return StoredSession.fromJson(decoded.cast<String, dynamic>());
+      }
     } catch (_) {}
     return null;
   }

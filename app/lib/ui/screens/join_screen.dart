@@ -71,7 +71,9 @@ class _JoinScreenState extends State<JoinScreen> {
     setState(() {
       _checking = false;
       _preview = preview;
-      _previewError = preview == null ? (app.errorMessage ?? 'No room found') : null;
+      _previewError = preview == null
+          ? (app.errorMessage ?? 'No room found')
+          : null;
     });
     if (preview == null) app.clearError();
   }
@@ -104,7 +106,10 @@ class _JoinScreenState extends State<JoinScreen> {
 
     return PageFrame(
       maxWidth: 560,
-      padding: EdgeInsets.symmetric(horizontal: device.isTv ? 44 : 18, vertical: 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: device.isTv ? 44 : 18,
+        vertical: 14,
+      ),
       alignment: Alignment.center,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -137,7 +142,8 @@ class _JoinScreenState extends State<JoinScreen> {
                 const SizedBox(height: 6),
                 Text(
                   "It's the six characters your host sent. Case doesn't matter.",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 22),
                 TextField(
@@ -149,13 +155,14 @@ class _JoinScreenState extends State<JoinScreen> {
                   keyboardType: TextInputType.visiblePassword,
                   maxLength: 6,
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        letterSpacing: 12,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    letterSpacing: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp('[a-zA-Z0-9]')),
                     TextInputFormatter.withFunction(
-                      (oldValue, newValue) => newValue.copyWith(text: newValue.text.toUpperCase()),
+                      (oldValue, newValue) =>
+                          newValue.copyWith(text: newValue.text.toUpperCase()),
                     ),
                   ],
                   onChanged: _onChanged,
@@ -165,7 +172,10 @@ class _JoinScreenState extends State<JoinScreen> {
                   decoration: const InputDecoration(
                     hintText: 'ABC123',
                     counterText: '',
-                    contentPadding: EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 22,
+                      horizontal: 16,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -188,10 +198,7 @@ class _JoinScreenState extends State<JoinScreen> {
                 AnimatedSize(
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
-                  child: _PreviewPanel(
-                    preview: _preview,
-                    error: _previewError,
-                  ),
+                  child: _PreviewPanel(preview: _preview, error: _previewError),
                 ),
                 const SizedBox(height: 20),
                 ExpressiveButton(
@@ -206,13 +213,18 @@ class _JoinScreenState extends State<JoinScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.location_on_outlined, size: 16, color: scheme.onSurfaceVariant),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: scheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'We ask for your location once you join so the host can see your ETA. '
                         'You can join without it and share later.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ),
                   ],
@@ -222,7 +234,11 @@ class _JoinScreenState extends State<JoinScreen> {
           ),
           if (device.isTv) ...[
             const SizedBox(height: 16),
-            const Center(child: RemoteHint(labels: ['Type with the on-screen keyboard', 'OK to join'])),
+            const Center(
+              child: RemoteHint(
+                labels: ['Type with the on-screen keyboard', 'OK to join'],
+              ),
+            ),
           ],
         ],
       ),
@@ -240,6 +256,7 @@ class _PreviewPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     if (preview == null && error == null) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
+    final appStyle = AppStyle.of(context);
     if (error != null) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
@@ -250,7 +267,8 @@ class _PreviewPanel extends StatelessWidget {
             Expanded(
               child: Text(
                 'No room with that code. Check the digits and try again.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.error),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: scheme.error),
               ),
             ),
           ],
@@ -271,13 +289,16 @@ class _PreviewPanel extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Palette.mint.withValues(alpha: 0.08),
+          color: appStyle.live.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Palette.mint.withValues(alpha: 0.25)),
+          border: Border.all(color: appStyle.live.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
-            Text(host?.avatar ?? '🏠', style: const TextStyle(fontSize: 28, height: 1)),
+            Text(
+              host?.avatar ?? '🏠',
+              style: const TextStyle(fontSize: 28, height: 1),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -290,14 +311,13 @@ class _PreviewPanel extends StatelessWidget {
                   Text(
                     '${preview!.members.length} ${plural(preview!.members.length, 'person', 'people')} in the room · '
                     'code ${preview!.room.code}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.check_circle_rounded, color: Palette.mint, size: 20),
+            Icon(Icons.check_circle_rounded, color: appStyle.live, size: 20),
           ],
         ),
       ),

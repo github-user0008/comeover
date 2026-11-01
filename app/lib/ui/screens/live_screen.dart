@@ -58,7 +58,11 @@ class _LiveScreenState extends State<LiveScreen> {
     return points;
   }
 
-  void _scheduleFit(AppController app, {required bool wide, bool force = false}) {
+  void _scheduleFit(
+    AppController app, {
+    required bool wide,
+    bool force = false,
+  }) {
     if (!_mapReady || !_follow) return;
     final traveller = app.trackedMember;
     final key = '${traveller?.id}:${app.originPoint?.hashCode}';
@@ -90,10 +94,12 @@ class _LiveScreenState extends State<LiveScreen> {
     final text = estimate == null
         ? 'Come over — join my ComeOver room with code ${app.roomCode}.\n${app.inviteLink}'
         : '${memberFirstName(estimate.traveller)} is ${formatDistance(estimate.meters, app.units)} away — '
-            'ETA ${formatDuration(estimate.eta, precise: false)}.\n'
-            '${formatArrival(estimate.arrivalAt)}\nTrack live: ${app.inviteLink}';
+              'ETA ${formatDuration(estimate.eta, precise: false)}.\n'
+              '${formatArrival(estimate.arrivalAt)}\nTrack live: ${app.inviteLink}';
     try {
-      await SharePlus.instance.share(ShareParams(text: text, subject: 'ComeOver ETA'));
+      await SharePlus.instance.share(
+        ShareParams(text: text, subject: 'ComeOver ETA'),
+      );
     } catch (_) {
       await Clipboard.setData(ClipboardData(text: text));
       if (mounted) app.showNotice('ETA copied to clipboard');
@@ -112,7 +118,10 @@ class _LiveScreenState extends State<LiveScreen> {
               : 'Your position stops sharing and you leave the live map.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Stay')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Stay'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(host ? 'Close room' : 'Leave'),
@@ -269,16 +278,14 @@ class _MapStage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     final origin = app.originPoint;
     final tracked = app.trackedMember;
     final travellerPoint = tracked?.location?.point;
-    final route = <LatLng>[
-      ?origin,
-      ?travellerPoint,
-    ];
+    final route = <LatLng>[?origin, ?travellerPoint];
 
     return Container(
-      color: Palette.ink,
+      color: style.ink,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -289,7 +296,7 @@ class _MapStage extends StatelessWidget {
               initialZoom: route.length > 1 ? 15 : 16,
               minZoom: 3,
               maxZoom: 19,
-              backgroundColor: Palette.ink,
+              backgroundColor: style.ink,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
               ),
@@ -305,10 +312,13 @@ class _MapStage extends StatelessWidget {
                   circles: [
                     CircleMarker(
                       point: origin,
-                      radius: (app.room?.settings.arrivalRadius ?? 40).clamp(15, 200),
+                      radius: (app.room?.settings.arrivalRadius ?? 40).clamp(
+                        15,
+                        200,
+                      ),
                       useRadiusInMeter: true,
-                      color: Palette.mint.withValues(alpha: 0.14),
-                      borderColor: Palette.mint.withValues(alpha: 0.55),
+                      color: style.live.withValues(alpha: 0.14),
+                      borderColor: style.live.withValues(alpha: 0.55),
                       borderStrokeWidth: 1.5,
                     ),
                   ],
@@ -324,7 +334,7 @@ class _MapStage extends StatelessWidget {
                     Polyline(
                       points: route,
                       strokeWidth: 3,
-                      color: Palette.mint.withValues(alpha: 0.9),
+                      color: style.live.withValues(alpha: 0.9),
                       pattern: StrokePattern.dashed(segments: const [9, 8]),
                     ),
                   ],
@@ -339,7 +349,9 @@ class _MapStage extends StatelessWidget {
                       alignment: Alignment.topCenter,
                       child: _OriginPin(
                         member: app.originMember,
-                        label: app.viewingFromHost ? (app.originMember?.name ?? 'Host') : 'You',
+                        label: app.viewingFromHost
+                            ? (app.originMember?.name ?? 'Host')
+                            : 'You',
                       ),
                     ),
                   for (final member in app.trackable)
@@ -367,10 +379,10 @@ class _MapStage extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Palette.ink.withValues(alpha: 0.78),
+                    style.ink.withValues(alpha: 0.78),
                     Colors.transparent,
                     Colors.transparent,
-                    Palette.ink.withValues(alpha: wide ? 0.35 : 0.82),
+                    style.ink.withValues(alpha: wide ? 0.35 : 0.82),
                   ],
                   stops: const [0, 0.18, 0.68, 1],
                 ),
@@ -380,7 +392,12 @@ class _MapStage extends StatelessWidget {
           SafeArea(
             bottom: false,
             child: Padding(
-              padding: EdgeInsets.fromLTRB(wide ? 20 : 12, 10, wide ? 16 : 12, 0),
+              padding: EdgeInsets.fromLTRB(
+                wide ? 20 : 12,
+                10,
+                wide ? 16 : 12,
+                0,
+              ),
               child: Row(
                 children: [
                   GlassIconButton(
@@ -435,10 +452,12 @@ class _MapStage extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 GlassIconButton(
-                  icon: following ? Icons.my_location_rounded : Icons.location_searching_rounded,
+                  icon: following
+                      ? Icons.my_location_rounded
+                      : Icons.location_searching_rounded,
                   tooltip: following ? 'Following' : 'Recenter',
                   size: 44,
-                  tone: following ? Palette.mint : null,
+                  tone: following ? style.live : null,
                   onPressed: onRecenter,
                 ),
               ],
@@ -471,16 +490,21 @@ class _RoomPill extends StatelessWidget {
           Text(
             app.roomCode,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  letterSpacing: 2,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+              letterSpacing: 2,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
           const SizedBox(width: 10),
-          Container(width: 1, height: 14, color: scheme.outlineVariant.withValues(alpha: 0.7)),
+          Container(
+            width: 1,
+            height: 14,
+            color: scheme.outlineVariant.withValues(alpha: 0.7),
+          ),
           const SizedBox(width: 10),
           Text(
             app.relayStatus.label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -509,16 +533,29 @@ class _OriginPin extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [scheme.primary, scheme.secondary.withValues(alpha: 0.85)],
+              colors: [
+                scheme.primary,
+                scheme.secondary.withValues(alpha: 0.85),
+              ],
             ),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.7), width: 2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.7),
+              width: 2,
+            ),
             boxShadow: [
-              BoxShadow(color: scheme.primary.withValues(alpha: 0.55), blurRadius: 28, spreadRadius: 2),
+              BoxShadow(
+                color: scheme.primary.withValues(alpha: 0.55),
+                blurRadius: 28,
+                spreadRadius: 2,
+              ),
             ],
           ),
           child: member == null
-              ? const Icon(Icons.home_rounded, size: 24, color: Palette.ink)
-              : Text(member!.avatar, style: const TextStyle(fontSize: 26, height: 1)),
+              ? Icon(Icons.home_rounded, size: 24, color: scheme.onPrimary)
+              : Text(
+                  member!.avatar,
+                  style: const TextStyle(fontSize: 26, height: 1),
+                ),
         ),
         const SizedBox(height: 4),
         _PinLabel(text: label, accent: scheme.primary),
@@ -528,7 +565,11 @@ class _OriginPin extends StatelessWidget {
 }
 
 class _TravellerPin extends StatelessWidget {
-  const _TravellerPin({required this.member, required this.selected, this.bearing});
+  const _TravellerPin({
+    required this.member,
+    required this.selected,
+    this.bearing,
+  });
 
   final Member member;
   final bool selected;
@@ -537,6 +578,7 @@ class _TravellerPin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = colorFromHex(member.colorHex);
+    final style = AppStyle.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -550,10 +592,18 @@ class _TravellerPin extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: color.withValues(alpha: 0.55), width: 2),
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.55),
+                      width: 2,
+                    ),
                   ),
                 ),
-              AvatarBubble(member: member, size: selected ? 54 : 42, showStatus: true, glow: selected),
+              AvatarBubble(
+                member: member,
+                size: selected ? 54 : 42,
+                showStatus: true,
+                glow: selected,
+              ),
               if (bearing != null)
                 Positioned(
                   right: selected ? 0 : 1,
@@ -565,10 +615,16 @@ class _TravellerPin extends StatelessWidget {
                       height: 20,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Palette.ink,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                        color: style.ink,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
                       ),
-                      child: Icon(Icons.navigation_rounded, size: 13, color: color),
+                      child: Icon(
+                        Icons.navigation_rounded,
+                        size: 13,
+                        color: color,
+                      ),
                     ),
                   ),
                 ),
@@ -587,7 +643,11 @@ class _TravellerPin extends StatelessWidget {
 }
 
 class _PinLabel extends StatelessWidget {
-  const _PinLabel({required this.text, required this.accent, this.strong = false});
+  const _PinLabel({
+    required this.text,
+    required this.accent,
+    this.strong = false,
+  });
 
   final String text;
   final Color accent;
@@ -595,12 +655,24 @@ class _PinLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
+    final onAccent =
+        ThemeData.estimateBrightnessForColor(accent) == Brightness.light
+        ? Colors.black87
+        : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: (strong ? accent : Palette.ink).withValues(alpha: strong ? 0.92 : 0.72),
+        color: (strong ? accent : style.ink).withValues(
+          alpha: strong ? 0.92 : 0.80,
+        ),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+        border: Border.all(
+          color: strong
+              ? Colors.white.withValues(alpha: 0.30)
+              : style.chipBorder,
+        ),
         boxShadow: strong
             ? [BoxShadow(color: accent.withValues(alpha: 0.45), blurRadius: 18)]
             : null,
@@ -610,9 +682,9 @@ class _PinLabel extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: strong ? Palette.ink : Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
+          color: strong ? onAccent : scheme.onSurface,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -657,7 +729,13 @@ class _CompactHud extends StatelessWidget {
             children: [
               _CountdownRing(estimate: estimate, size: device.isTv ? 108 : 96),
               const SizedBox(width: 14),
-              Expanded(child: _EstimateSummary(app: app, estimate: estimate, dense: true)),
+              Expanded(
+                child: _EstimateSummary(
+                  app: app,
+                  estimate: estimate,
+                  dense: true,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -675,7 +753,9 @@ class _CompactHud extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               GlassIconButton(
-                icon: app.sharingPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                icon: app.sharingPaused
+                    ? Icons.play_arrow_rounded
+                    : Icons.pause_rounded,
                 tooltip: app.sharingPaused ? 'Resume sharing' : 'Pause sharing',
                 size: 46,
                 onPressed: () => app.setSharingPaused(!app.sharingPaused),
@@ -731,7 +811,12 @@ class _Rail extends StatelessWidget {
     return SafeArea(
       left: false,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(device.isTv ? 20 : 14, 12, device.isTv ? 28 : 14, 12),
+        padding: EdgeInsets.fromLTRB(
+          device.isTv ? 20 : 14,
+          12,
+          device.isTv ? 28 : 14,
+          12,
+        ),
         child: FocusTraversalGroup(
           policy: ReadingOrderTraversalPolicy(),
           child: SingleChildScrollView(
@@ -761,7 +846,9 @@ class _Rail extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              estimate == null ? 'Waiting for movement' : 'Incoming',
+                              estimate == null
+                                  ? 'Waiting for movement'
+                                  : 'Incoming',
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
                           ),
@@ -780,9 +867,18 @@ class _Rail extends StatelessWidget {
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          _CountdownRing(estimate: estimate, size: device.isTv ? 132 : 116),
+                          _CountdownRing(
+                            estimate: estimate,
+                            size: device.isTv ? 132 : 116,
+                          ),
                           const SizedBox(width: 18),
-                          Expanded(child: _EstimateSummary(app: app, estimate: estimate, dense: false)),
+                          Expanded(
+                            child: _EstimateSummary(
+                              app: app,
+                              estimate: estimate,
+                              dense: false,
+                            ),
+                          ),
                         ],
                       ),
                       if (estimate != null) ...[
@@ -805,12 +901,17 @@ class _Rail extends StatelessWidget {
                         children: [
                           Expanded(
                             child: ExpressiveButton(
-                              label: app.sharingPaused ? 'Resume sharing' : 'Pause sharing',
-                              icon: app.sharingPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                              label: app.sharingPaused
+                                  ? 'Resume sharing'
+                                  : 'Pause sharing',
+                              icon: app.sharingPaused
+                                  ? Icons.play_arrow_rounded
+                                  : Icons.pause_rounded,
                               tone: ExpressiveTone.tonal,
                               height: 48,
                               expanded: true,
-                              onPressed: () => app.setSharingPaused(!app.sharingPaused),
+                              onPressed: () =>
+                                  app.setSharingPaused(!app.sharingPaused),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -841,7 +942,9 @@ class _Rail extends StatelessWidget {
                           Expanded(
                             child: ExpressiveButton(
                               label: app.isHost ? 'Close room' : 'Leave',
-                              icon: app.isHost ? Icons.close_rounded : Icons.logout_rounded,
+                              icon: app.isHost
+                                  ? Icons.close_rounded
+                                  : Icons.logout_rounded,
                               tone: ExpressiveTone.danger,
                               height: 46,
                               expanded: true,
@@ -864,9 +967,8 @@ class _Rail extends StatelessWidget {
                         'In the room',
                         trailing: Text(
                           '${app.members.length}',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -881,9 +983,8 @@ class _Rail extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             'Share the code or start a demo walk to preview the live view.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
                           ),
                         ),
                     ],
@@ -892,16 +993,19 @@ class _Rail extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.lock_outline_rounded, size: 14, color: scheme.onSurfaceVariant),
+                    Icon(
+                      Icons.lock_outline_rounded,
+                      size: 14,
+                      color: scheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 7),
                     Expanded(
                       child: Text(
                         app.viewingFromHost
                             ? 'Distances are measured from ${app.originMember?.name ?? 'the host'} — this screen has no GPS.'
                             : 'Sharing stops the moment this room closes.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ),
                   ],
@@ -945,7 +1049,11 @@ class _TravellerSelector extends StatelessWidget {
 }
 
 class _TravellerChip extends StatefulWidget {
-  const _TravellerChip({required this.member, required this.selected, required this.onTap});
+  const _TravellerChip({
+    required this.member,
+    required this.selected,
+    required this.onTap,
+  });
 
   final Member member;
   final bool selected;
@@ -961,6 +1069,7 @@ class _TravellerChipState extends State<_TravellerChip> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     final color = colorFromHex(widget.member.colorHex);
     return Material(
       type: MaterialType.transparency,
@@ -973,13 +1082,15 @@ class _TravellerChipState extends State<_TravellerChip> {
           padding: const EdgeInsets.fromLTRB(5, 4, 13, 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
-            color: widget.selected ? color.withValues(alpha: 0.22) : Colors.white.withValues(alpha: 0.06),
+            color: widget.selected
+                ? color.withValues(alpha: 0.22)
+                : style.chipFill,
             border: Border.all(
               color: widget.selected
                   ? color
                   : _focused
-                      ? scheme.secondary
-                      : Colors.white.withValues(alpha: 0.14),
+                  ? scheme.secondary
+                  : style.chipBorder,
               width: widget.selected || _focused ? 2 : 1,
             ),
           ),
@@ -990,15 +1101,23 @@ class _TravellerChipState extends State<_TravellerChip> {
                 width: 28,
                 height: 28,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.28)),
-                child: Text(widget.member.avatar, style: const TextStyle(fontSize: 15, height: 1)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.28),
+                ),
+                child: Text(
+                  widget.member.avatar,
+                  style: const TextStyle(fontSize: 15, height: 1),
+                ),
               ),
               const SizedBox(width: 7),
               Text(
                 memberFirstName(widget.member),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: widget.selected ? Colors.white : scheme.onSurfaceVariant,
-                    ),
+                  color: widget.selected
+                      ? Colors.white
+                      : scheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -1009,7 +1128,11 @@ class _TravellerChipState extends State<_TravellerChip> {
 }
 
 class _MemberRow extends StatelessWidget {
-  const _MemberRow({required this.app, required this.member, required this.selected});
+  const _MemberRow({
+    required this.app,
+    required this.member,
+    required this.selected,
+  });
 
   final AppController app;
   final Member member;
@@ -1018,6 +1141,7 @@ class _MemberRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     final mine = member.id == app.me?.id;
     final origin = app.originPoint;
     final distance = !mine && member.location != null && origin != null
@@ -1030,11 +1154,18 @@ class _MemberRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: selected ? scheme.primary.withValues(alpha: 0.10) : Colors.transparent,
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.10)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
-            AvatarBubble(member: member, size: 34, showStatus: true, glow: selected),
+            AvatarBubble(
+              member: member,
+              size: 34,
+              showStatus: true,
+              glow: selected,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -1052,27 +1183,32 @@ class _MemberRow extends StatelessWidget {
                       ),
                       if (member.isHost) ...[
                         const SizedBox(width: 6),
-                        const Icon(Icons.key_rounded, size: 13, color: Palette.lemon),
+                        Icon(Icons.key_rounded, size: 13, color: style.caution),
                       ],
                       if (member.demo) ...[
                         const SizedBox(width: 6),
-                        const Icon(Icons.auto_awesome_rounded, size: 12, color: Palette.lavender),
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 12,
+                          color: style.accent,
+                        ),
                       ],
                     ],
                   ),
                   Text(
                     mine
-                        ? (app.sharingPaused ? 'Not sharing' : 'Sharing this device')
+                        ? (app.sharingPaused
+                              ? 'Not sharing'
+                              : 'Sharing this device')
                         : !member.online
-                            ? 'Offline'
-                            : member.isTv
-                                ? 'Watching on TV'
-                                : member.canTrack
-                                    ? motionLabel(member.location?.speed)
-                                    : 'No location yet',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                        ? 'Offline'
+                        : member.isTv
+                        ? 'Watching on TV'
+                        : member.canTrack
+                        ? motionLabel(member.location?.speed)
+                        : 'No location yet',
+                    style: Theme.of(context).textTheme.labelSmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -1094,7 +1230,10 @@ class _MemberRow extends StatelessWidget {
                   tooltip: 'Remove ${member.name}',
                   iconSize: 16,
                   onPressed: () => _remove(context, app, member),
-                  icon: Icon(Icons.person_remove_alt_1_rounded, color: scheme.onSurfaceVariant),
+                  icon: Icon(
+                    Icons.person_remove_alt_1_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ),
           ],
@@ -1103,15 +1242,27 @@ class _MemberRow extends StatelessWidget {
     );
   }
 
-  Future<void> _remove(BuildContext context, AppController app, Member member) async {
+  Future<void> _remove(
+    BuildContext context,
+    AppController app,
+    Member member,
+  ) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Remove ${member.name}?'),
-        content: const Text('They leave the room immediately and their dot disappears.'),
+        content: const Text(
+          'They leave the room immediately and their dot disappears.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Remove')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove'),
+          ),
         ],
       ),
     );
@@ -1130,6 +1281,7 @@ class _CountdownRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     final value = estimate?.progress ?? 0;
     final arrived = estimate?.arrived ?? false;
     return ProgressRing(
@@ -1137,27 +1289,29 @@ class _CountdownRing extends StatelessWidget {
       size: size,
       stroke: size * 0.075,
       colors: arrived
-          ? const [Palette.mint, Palette.lemon, Palette.mint]
-          : const [Palette.mint, Palette.lavender, Palette.peach],
+          ? [style.live, style.caution, style.live]
+          : [style.live, style.accent, style.warm],
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            arrived ? '0:00' : (estimate == null ? '—:—' : formatCountdown(estimate!.countdown)),
+            arrived
+                ? '0:00'
+                : (estimate == null
+                      ? '—:—'
+                      : formatCountdown(estimate!.countdown)),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontSize: size * 0.235,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.6,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                  color: arrived ? Palette.mint : scheme.onSurface,
-                ),
+              fontSize: size * 0.235,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.6,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: arrived ? style.live : scheme.onSurface,
+            ),
           ),
           Text(
             arrived ? 'here' : 'left',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.2,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant, letterSpacing: 1.2),
           ),
         ],
       ),
@@ -1166,7 +1320,11 @@ class _CountdownRing extends StatelessWidget {
 }
 
 class _EstimateSummary extends StatelessWidget {
-  const _EstimateSummary({required this.app, required this.estimate, required this.dense});
+  const _EstimateSummary({
+    required this.app,
+    required this.estimate,
+    required this.dense,
+  });
 
   final AppController app;
   final TravelEstimate? estimate;
@@ -1175,6 +1333,7 @@ class _EstimateSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final appStyle = AppStyle.of(context);
     final value = estimate;
     if (value == null) {
       return Column(
@@ -1192,7 +1351,8 @@ class _EstimateSummary extends StatelessWidget {
                 : 'Waiting for a position from ${app.trackedMember?.name ?? 'them'}.',
             maxLines: dense ? 2 : 4,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       );
@@ -1216,7 +1376,7 @@ class _EstimateSummary extends StatelessWidget {
             Icon(
               value.stale ? Icons.wifi_off_rounded : Icons.near_me_rounded,
               size: 15,
-              color: value.stale ? Palette.peach : Palette.mint,
+              color: value.stale ? appStyle.warm : appStyle.live,
             ),
           ],
         ),
@@ -1227,7 +1387,8 @@ class _EstimateSummary extends StatelessWidget {
               : '${motionLabel(value.traveller.location?.speed)} · approaching from the ${value.compass}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 10),
         Row(
@@ -1237,14 +1398,16 @@ class _EstimateSummary extends StatelessWidget {
               child: StatValue(
                 label: 'Distance',
                 value: formatDistance(value.meters, app.units),
-                accent: value.arrived ? Palette.mint : null,
+                accent: value.arrived ? appStyle.live : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: StatValue(
                 label: 'ETA',
-                value: value.arrived ? 'now' : formatDuration(value.eta, precise: false),
+                value: value.arrived
+                    ? 'now'
+                    : formatDuration(value.eta, precise: false),
                 sub: value.arrived ? null : formatClock(value.arrivalAt),
               ),
             ),
@@ -1263,6 +1426,7 @@ class _RouteMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1271,9 +1435,9 @@ class _RouteMeter extends StatelessWidget {
             Text(
               'ROUTE PROGRESS',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    letterSpacing: 1.4,
-                  ),
+                color: scheme.onSurfaceVariant,
+                letterSpacing: 1.4,
+              ),
             ),
             const Spacer(),
             Text(
@@ -1292,8 +1456,10 @@ class _RouteMeter extends StatelessWidget {
             builder: (context, value, _) => LinearProgressIndicator(
               value: value,
               minHeight: 7,
-              backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
-              valueColor: const AlwaysStoppedAnimation(Palette.mint),
+              backgroundColor: scheme.surfaceContainerHighest.withValues(
+                alpha: 0.55,
+              ),
+              valueColor: AlwaysStoppedAnimation(style.live),
             ),
           ),
         ),
@@ -1313,12 +1479,13 @@ class _Freshness extends StatelessWidget {
     final age = now.difference(estimate.receivedAt);
     final stale = age > const Duration(seconds: 45);
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Row(
       children: [
         Icon(
           stale ? Icons.warning_amber_rounded : Icons.bolt_rounded,
           size: 14,
-          color: stale ? Palette.peach : Palette.mint,
+          color: stale ? style.warm : style.live,
         ),
         const SizedBox(width: 6),
         Expanded(
@@ -1326,9 +1493,8 @@ class _Freshness extends StatelessWidget {
             stale
                 ? 'Last position ${formatAgo(age)} — countdown is paused.'
                 : 'Position updated ${formatAgo(age)} · accuracy ±${formatDistance(estimate.accuracy, UnitSystem.metric, compact: true)}',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: stale ? Palette.peach : scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: stale ? style.warm : scheme.onSurfaceVariant),
           ),
         ),
       ],
@@ -1339,7 +1505,11 @@ class _Freshness extends StatelessWidget {
 /* ------------------------------------------------------------------ arrival */
 
 class _ArrivalOverlay extends StatefulWidget {
-  const _ArrivalOverlay({required this.estimate, required this.units, required this.onDismiss});
+  const _ArrivalOverlay({
+    required this.estimate,
+    required this.units,
+    required this.onDismiss,
+  });
 
   final TravelEstimate estimate;
   final UnitSystem units;
@@ -1349,7 +1519,8 @@ class _ArrivalOverlay extends StatefulWidget {
   State<_ArrivalOverlay> createState() => _ArrivalOverlayState();
 }
 
-class _ArrivalOverlayState extends State<_ArrivalOverlay> with SingleTickerProviderStateMixin {
+class _ArrivalOverlayState extends State<_ArrivalOverlay>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 2),
@@ -1365,9 +1536,10 @@ class _ArrivalOverlayState extends State<_ArrivalOverlay> with SingleTickerProvi
   Widget build(BuildContext context) {
     final traveller = widget.estimate.traveller;
     final color = colorFromHex(traveller.colorHex);
+    final style = AppStyle.of(context);
     return Positioned.fill(
       child: ColoredBox(
-        color: Palette.ink.withValues(alpha: 0.72),
+        color: style.scrim,
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(22),
@@ -1391,13 +1563,19 @@ class _ArrivalOverlayState extends State<_ArrivalOverlay> with SingleTickerProvi
                             children: [
                               for (var i = 0; i < 3; i++)
                                 Opacity(
-                                  opacity: (1 - ((_pulse.value + i / 3) % 1)) * 0.55,
+                                  opacity:
+                                      (1 - ((_pulse.value + i / 3) % 1)) * 0.55,
                                   child: Container(
-                                    width: 78 + ((_pulse.value + i / 3) % 1) * 70,
-                                    height: 78 + ((_pulse.value + i / 3) % 1) * 70,
+                                    width:
+                                        78 + ((_pulse.value + i / 3) % 1) * 70,
+                                    height:
+                                        78 + ((_pulse.value + i / 3) % 1) * 70,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: color, width: 1.5),
+                                      border: Border.all(
+                                        color: color,
+                                        width: 1.5,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1405,7 +1583,12 @@ class _ArrivalOverlayState extends State<_ArrivalOverlay> with SingleTickerProvi
                             ],
                           );
                         },
-                        child: AvatarBubble(member: traveller, size: 82, showStatus: false, glow: true),
+                        child: AvatarBubble(
+                          member: traveller,
+                          size: 82,
+                          showStatus: false,
+                          glow: true,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -1421,8 +1604,8 @@ class _ArrivalOverlayState extends State<_ArrivalOverlay> with SingleTickerProvi
                           : 'Right on time.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 22),
                     Row(

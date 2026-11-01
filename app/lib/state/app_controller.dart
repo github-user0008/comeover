@@ -21,9 +21,11 @@ typedef RealtimeFactory = RealtimeClient Function({
   required String roomId,
   required String memberId,
   required String token,
-  required void Function(RoomModel room, List<Member> members, Member? me) onSnapshot,
+  required void Function(RoomModel room, List<Member> members, Member? me)
+  onSnapshot,
   required void Function(Member member) onMemberJoined,
-  required void Function(String memberId, MemberLocation location) onMemberLocation,
+  required void Function(String memberId, MemberLocation location)
+  onMemberLocation,
   required void Function(String memberId, bool online) onMemberPresence,
   required void Function(String memberId) onMemberLeft,
   required void Function(RoomSettings settings) onSettings,
@@ -37,8 +39,8 @@ class AppController extends ChangeNotifier {
     required this.baseConfig,
     required this.prefs,
     RealtimeFactory? realtimeFactory,
-  })  : _realtimeFactory = realtimeFactory ?? _defaultRealtimeFactory,
-        _config = baseConfig;
+  }) : _realtimeFactory = realtimeFactory ?? _defaultRealtimeFactory,
+       _config = baseConfig;
 
   final AppConfig baseConfig;
   final Prefs prefs;
@@ -107,7 +109,8 @@ class AppController extends ChangeNotifier {
   LatLng? get originPoint => originMember?.location?.point ?? myPoint;
 
   bool get viewingFromHost => me?.location == null && originMember != null;
-  String get originLabel => viewingFromHost ? (originMember?.name ?? 'host') : 'you';
+  String get originLabel =>
+      viewingFromHost ? (originMember?.name ?? 'host') : 'you';
   bool get sharingLocation => !sharingPaused && _myFix != null;
 
   List<Member> get others {
@@ -149,7 +152,9 @@ class AppController extends ChangeNotifier {
   TravelEstimate? get estimate {
     final traveller = trackedMember;
     final origin = originPoint;
-    if (traveller == null || traveller.location == null || origin == null) return null;
+    if (traveller == null || traveller.location == null || origin == null) {
+      return null;
+    }
     if (traveller.id == originMember?.id) return null;
     final receivedAt = traveller.receivedAt ?? now;
     final start = _routeStarts.putIfAbsent(
@@ -193,7 +198,10 @@ class AppController extends ChangeNotifier {
     isTelevision = await detectTelevision();
     serverOverride = prefs.serverOverride;
     if (serverOverride != null && serverOverride!.isNotEmpty) {
-      _config = baseConfig.copyWith(serverUrl: serverOverride, publicUrl: serverOverride);
+      _config = baseConfig.copyWith(
+        serverUrl: serverOverride,
+        publicUrl: serverOverride,
+      );
       _reconfigureClients();
     }
 
@@ -255,7 +263,9 @@ class AppController extends ChangeNotifier {
         await prefs.saveSession(null);
         return;
       }
-      final found = preview.members.where((m) => m.id == stored.memberId).toList();
+      final found = preview.members
+          .where((m) => m.id == stored.memberId)
+          .toList();
       if (found.isEmpty) {
         await prefs.saveSession(null);
         return;
@@ -281,7 +291,10 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({required String name, required String avatar}) async {
+  Future<void> updateProfile({
+    required String name,
+    required String avatar,
+  }) async {
     final clean = name.trim();
     if (clean.isEmpty) return;
     profile = profile.copyWith(name: clean, avatar: avatar);
@@ -336,7 +349,9 @@ class AppController extends ChangeNotifier {
       if (at != null) {
         fix = LocationFix(point: at, accuracy: 25, timestamp: DateTime.now());
       } else if (device == DeviceClass.tv) {
-        throw const ApiException('Pick a meeting point first — TVs rarely have GPS.');
+        throw const ApiException(
+          'Pick a meeting point first — TVs rarely have GPS.',
+        );
       } else {
         fix = await _acquireFix();
       }
@@ -432,7 +447,10 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<void> startDemoTraveller({bool driving = false, double meters = 1400}) async {
+  Future<void> startDemoTraveller({
+    bool driving = false,
+    double meters = 1400,
+  }) async {
     final current = _session;
     if (current == null || !isHost) return;
     try {
@@ -457,7 +475,9 @@ class AppController extends ChangeNotifier {
   Future<void> _adopt(RoomSession session, {required String role}) async {
     room = session.room;
     members = session.members.isEmpty ? [session.me] : session.members;
-    me = _firstWhereOrNull(session.members, (m) => m.id == session.me.id) ?? session.me;
+    me =
+        _firstWhereOrNull(session.members, (m) => m.id == session.me.id) ??
+        session.me;
     _session = Membership(
       roomId: session.room.id,
       code: session.room.code,
@@ -466,14 +486,16 @@ class AppController extends ChangeNotifier {
       role: role,
     );
     units = prefs.units;
-    await prefs.saveSession(StoredSession(
-      roomId: session.room.id,
-      code: session.room.code,
-      memberId: session.me.id,
-      token: session.token,
-      expiresAt: session.room.expiresAt,
-      role: role,
-    ));
+    await prefs.saveSession(
+      StoredSession(
+        roomId: session.room.id,
+        code: session.room.code,
+        memberId: session.me.id,
+        token: session.token,
+        expiresAt: session.room.expiresAt,
+        role: role,
+      ),
+    );
     _connect();
   }
 
@@ -510,13 +532,17 @@ class AppController extends ChangeNotifier {
     final mapped = nextMembers.map((member) {
       if (member.id == local?.id && local?.receivedAt != null) {
         final remoteTs = member.receivedAt;
-        if (remoteTs == null || remoteTs.isBefore(local!.receivedAt!)) return local!;
+        if (remoteTs == null || remoteTs.isBefore(local!.receivedAt!)) {
+          return local!;
+        }
       }
       return member;
     }).toList();
     if (mapped.isEmpty && me != null) mapped.add(me!);
     members = mapped;
-    if (you != null) me = _firstWhereOrNull(mapped, (m) => m.id == you.id) ?? you;
+    if (you != null) {
+      me = _firstWhereOrNull(mapped, (m) => m.id == you.id) ?? you;
+    }
     _prune();
     if (stage == AppStage.hosting && others.any((m) => m.canTrack)) {
       stage = AppStage.live;
@@ -540,9 +566,15 @@ class AppController extends ChangeNotifier {
     if (memberId == me?.id) return;
     final index = members.indexWhere((m) => m.id == memberId);
     if (index == -1) return;
-    final updated = members[index].withLocation(location, receivedAt: DateTime.now(), online: true);
+    final updated = members[index].withLocation(
+      location,
+      receivedAt: DateTime.now(),
+      online: true,
+    );
     members = [...members]..[index] = updated;
-    if (focusedMemberId == null && !isHost && updated.isHost) focusedMemberId = updated.id;
+    if (focusedMemberId == null && !isHost && updated.isHost) {
+      focusedMemberId = updated.id;
+    }
     notifyListeners();
   }
 
@@ -608,7 +640,11 @@ class AppController extends ChangeNotifier {
     final session = _session;
     if (session != null) {
       try {
-        await _api.leaveRoom(code: session.code, token: session.token, memberId: session.memberId);
+        await _api.leaveRoom(
+          code: session.code,
+          token: session.token,
+          memberId: session.memberId,
+        );
       } catch (_) {
         // Best effort — a dead relay should never trap someone in a screen.
       }
@@ -639,7 +675,10 @@ class AppController extends ChangeNotifier {
       members = [...members]..[index] = member;
     }
     if (member.id == me?.id) me = member;
-    if (focusedMemberId == null && member.id != me?.id && member.canTrack && isHost) {
+    if (focusedMemberId == null &&
+        member.id != me?.id &&
+        member.canTrack &&
+        isHost) {
       focusedMemberId = member.id;
     }
   }
@@ -709,7 +748,8 @@ class AppController extends ChangeNotifier {
       _upsertMember(me!);
     }
     final sentAt = DateTime.now();
-    if (forceSend || sentAt.difference(_lastSent) > const Duration(milliseconds: 900)) {
+    if (forceSend ||
+        sentAt.difference(_lastSent) > const Duration(milliseconds: 900)) {
       _lastSent = sentAt;
       _relay?.sendLocation(memberLocation);
     }
@@ -718,7 +758,11 @@ class AppController extends ChangeNotifier {
 
   Future<void> useMeetingPoint(LatLng point) async {
     meetingPoint = point;
-    final fix = LocationFix(point: point, accuracy: 30, timestamp: DateTime.now());
+    final fix = LocationFix(
+      point: point,
+      accuracy: 30,
+      timestamp: DateTime.now(),
+    );
     _myFix = fix;
     _applyFix(fix, forceSend: true);
     if (locationUnavailable) locationUnavailable = false;
@@ -812,7 +856,8 @@ class AppController extends ChangeNotifier {
       _config = baseConfig;
       _reconfigureClients();
       _api = ComeOverApi(config: _config);
-      _location = LocationService(config: _config)..setBackgroundUpdates(liveStatusEnabled);
+      _location = LocationService(config: _config)
+        ..setBackgroundUpdates(liveStatusEnabled);
       notifyListeners();
       return true;
     }
@@ -827,7 +872,8 @@ class AppController extends ChangeNotifier {
     _config = baseConfig.copyWith(serverUrl: normalized, publicUrl: normalized);
     _reconfigureClients();
     _api = ComeOverApi(config: _config);
-    _location = LocationService(config: _config)..setBackgroundUpdates(liveStatusEnabled);
+    _location = LocationService(config: _config)
+      ..setBackgroundUpdates(liveStatusEnabled);
     notifyListeners();
     return true;
   }
@@ -839,7 +885,9 @@ class AppController extends ChangeNotifier {
     }
     final uri = Uri.tryParse(candidate);
     if (uri == null || uri.host.isEmpty) return null;
-    return candidate.endsWith('/') ? candidate.substring(0, candidate.length - 1) : candidate;
+    return candidate.endsWith('/')
+        ? candidate.substring(0, candidate.length - 1)
+        : candidate;
   }
 
   Future<bool> checkRelay() async {
@@ -858,7 +906,9 @@ class AppController extends ChangeNotifier {
       await setApproximateLocal(approximate);
       return;
     }
-    final settings = currentRoom.settings.copyWith(precision: approximate ? 'approximate' : 'exact');
+    final settings = currentRoom.settings.copyWith(
+      precision: approximate ? 'approximate' : 'exact',
+    );
     room = currentRoom.copyWith(settings: settings);
     notifyListeners();
     try {
@@ -896,7 +946,11 @@ class AppController extends ChangeNotifier {
     final session = _session;
     if (session == null || !isHost) return;
     try {
-      await _api.removeMember(code: session.code, token: session.token, memberId: memberId);
+      await _api.removeMember(
+        code: session.code,
+        token: session.token,
+        memberId: memberId,
+      );
       _onMemberLeft(memberId);
     } on ApiException catch (error) {
       errorMessage = error.message;
@@ -911,7 +965,9 @@ class AppController extends ChangeNotifier {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       now = DateTime.now();
       final value = estimate;
-      if (value != null && value.arrived && !_arrivalsSeen.contains(value.traveller.id)) {
+      if (value != null &&
+          value.arrived &&
+          !_arrivalsSeen.contains(value.traveller.id)) {
         // Leave it un-dismissed: the live screen shows a celebration once and
         // calls dismissArrival().
       }
@@ -935,10 +991,10 @@ class AppController extends ChangeNotifier {
   }
 
   String _deviceName(DeviceClass device) => switch (device) {
-        DeviceClass.tv => 'tv',
-        DeviceClass.tablet => 'tablet',
-        DeviceClass.phone => 'phone',
-      };
+    DeviceClass.tv => 'tv',
+    DeviceClass.tablet => 'tablet',
+    DeviceClass.phone => 'phone',
+  };
 
   DateTime get lastFixAt => _myFix?.timestamp ?? now;
 
@@ -981,28 +1037,29 @@ RealtimeClient _defaultRealtimeFactory({
   required String roomId,
   required String memberId,
   required String token,
-  required void Function(RoomModel room, List<Member> members, Member? me) onSnapshot,
+  required void Function(RoomModel room, List<Member> members, Member? me)
+  onSnapshot,
   required void Function(Member member) onMemberJoined,
-  required void Function(String memberId, MemberLocation location) onMemberLocation,
+  required void Function(String memberId, MemberLocation location)
+  onMemberLocation,
   required void Function(String memberId, bool online) onMemberPresence,
   required void Function(String memberId) onMemberLeft,
   required void Function(RoomSettings settings) onSettings,
   required void Function(String reason) onEnded,
   required void Function(RelayStatus status) onStatus,
   required void Function(String message) onError,
-}) =>
-    RealtimeClient(
-      config: config,
-      roomId: roomId,
-      memberId: memberId,
-      token: token,
-      onSnapshot: onSnapshot,
-      onMemberJoined: onMemberJoined,
-      onMemberLocation: onMemberLocation,
-      onMemberPresence: onMemberPresence,
-      onMemberLeft: onMemberLeft,
-      onSettings: onSettings,
-      onEnded: onEnded,
-      onStatus: onStatus,
-      onError: onError,
-    );
+}) => RealtimeClient(
+  config: config,
+  roomId: roomId,
+  memberId: memberId,
+  token: token,
+  onSnapshot: onSnapshot,
+  onMemberJoined: onMemberJoined,
+  onMemberLocation: onMemberLocation,
+  onMemberPresence: onMemberPresence,
+  onMemberLeft: onMemberLeft,
+  onSettings: onSettings,
+  onEnded: onEnded,
+  onStatus: onStatus,
+  onError: onError,
+);

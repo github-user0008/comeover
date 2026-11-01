@@ -31,8 +31,14 @@ Future<AppController> makeController() async {
   return controller;
 }
 
-Widget wrap(AppController controller, Widget child, {DeviceClass kind = DeviceClass.phone}) {
-  final size = kind == DeviceClass.tv ? const Size(1280, 720) : const Size(430, 900);
+Widget wrap(
+  AppController controller,
+  Widget child, {
+  DeviceClass kind = DeviceClass.phone,
+}) {
+  final size = kind == DeviceClass.tv
+      ? const Size(1280, 720)
+      : const Size(430, 900);
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.dark(),
@@ -112,7 +118,9 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('TV home offers the room buttons and remote hints', (tester) async {
+  testWidgets('TV home offers the room buttons and remote hints', (
+    tester,
+  ) async {
     final controller = await makeController();
     controller.stage = AppStage.home;
     controller.profile = const AppProfile(name: 'Maya', avatar: '🐼');
@@ -130,7 +138,9 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('ended screen summarises the room and returns home', (tester) async {
+  testWidgets('ended screen summarises the room and returns home', (
+    tester,
+  ) async {
     final controller = await makeController();
     controller
       ..stage = AppStage.ended

@@ -17,8 +17,11 @@ import 'ui/screens/welcome_screen.dart';
 import 'ui/aurora_background.dart';
 
 class AppScope extends InheritedNotifier<AppController> {
-  const AppScope({super.key, required AppController controller, required super.child})
-      : super(notifier: controller);
+  const AppScope({
+    super.key,
+    required AppController controller,
+    required super.child,
+  }) : super(notifier: controller);
 
   static AppController of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<AppScope>();
@@ -75,7 +78,8 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(LiveStatusCoordinator.instance.sync(_controller, force: true));
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       // Push one last snapshot before the OS suspends the Flutter isolate.
       unawaited(LiveStatusCoordinator.instance.sync(_controller, force: true));
     }
@@ -130,6 +134,8 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   void _showMessage(String message, {required bool isError}) {
     final messenger = _messengerKey.currentState;
     if (messenger == null) return;
+    final scheme = Theme.of(messenger.context).colorScheme;
+    final style = AppStyle.of(messenger.context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
       SnackBar(
@@ -137,9 +143,11 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
         content: Row(
           children: [
             Icon(
-              isError ? Icons.error_outline_rounded : Icons.info_outline_rounded,
+              isError
+                  ? Icons.error_outline_rounded
+                  : Icons.info_outline_rounded,
               size: 20,
-              color: isError ? const Color(0xFFFFB4AB) : Palette.mint,
+              color: isError ? scheme.error : style.live,
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(message)),
@@ -147,7 +155,7 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
         ),
         action: SnackBarAction(
           label: isError ? 'Dismiss' : 'OK',
-          textColor: Palette.lavender,
+          textColor: scheme.primary,
           onPressed: () {
             if (isError) _controller.clearError();
           },
@@ -174,12 +182,15 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
           final controller = AppScope.of(context);
           final profile = DeviceProfile.of(
             context,
-            forceTv: controller.forceTv ?? (controller.isTelevision ? true : null),
+            forceTv:
+                controller.forceTv ?? (controller.isTelevision ? true : null),
           );
           final media = MediaQuery.of(context);
           final scaled = profile.isTv
               ? media.copyWith(
-                  textScaler: TextScaler.linear(media.textScaler.scale(1) * 1.06),
+                  textScaler: TextScaler.linear(
+                    media.textScaler.scale(1) * 1.06,
+                  ),
                 )
               : media;
           return DeviceScope(
@@ -224,7 +235,10 @@ class AppRoot extends StatelessWidget {
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (child, animation) {
-            final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
             return FadeTransition(
               opacity: curved,
               child: ScaleTransition(
@@ -233,10 +247,7 @@ class AppRoot extends StatelessWidget {
               ),
             );
           },
-          child: KeyedSubtree(
-            key: ValueKey(controller.stage),
-            child: screen,
-          ),
+          child: KeyedSubtree(key: ValueKey(controller.stage), child: screen),
         ),
       ),
     );

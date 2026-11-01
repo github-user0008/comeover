@@ -17,7 +17,9 @@ const testConfig = AppConfig(
 );
 
 void main() {
-  testWidgets('settings sheet opens from home without throwing', (tester) async {
+  testWidgets('settings sheet opens from home without throwing', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({
       'profile.name': 'Maya',
       'profile.avatar': '🐼',
@@ -33,8 +35,10 @@ void main() {
     const deviceChannel = MethodChannel('dev.comeover/device');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(deviceChannel, (call) async => false);
-    addTearDown(() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(deviceChannel, null));
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(deviceChannel, null),
+    );
 
     tester.view.physicalSize = const Size(430, 900);
     tester.view.devicePixelRatio = 1;

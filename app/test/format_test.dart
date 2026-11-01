@@ -7,7 +7,10 @@ void main() {
       expect(formatDistance(0, UnitSystem.metric), '0 m');
       expect(formatDistance(820, UnitSystem.metric), '820 m');
       expect(formatDistance(1234, UnitSystem.metric), '1.2 km');
-      expect(formatDistance(123400, UnitSystem.metric, compact: true), '123 km');
+      expect(
+        formatDistance(123400, UnitSystem.metric, compact: true),
+        '123 km',
+      );
     });
 
     test('imperial uses feet and miles', () {
@@ -25,16 +28,31 @@ void main() {
     test('seconds, minutes and hours', () {
       expect(formatDuration(Duration.zero), 'now');
       expect(formatDuration(const Duration(seconds: 42)), '42 s');
-      expect(formatDuration(const Duration(minutes: 3, seconds: 12)), '3 min 12 s');
-      expect(formatDuration(const Duration(minutes: 12, seconds: 50)), '12 min');
-      expect(formatDuration(const Duration(hours: 1, minutes: 4)), '1 hr 4 min');
-      expect(formatDuration(const Duration(seconds: 42), precise: false), 'under a minute');
+      expect(
+        formatDuration(const Duration(minutes: 3, seconds: 12)),
+        '3 min 12 s',
+      );
+      expect(
+        formatDuration(const Duration(minutes: 12, seconds: 50)),
+        '12 min',
+      );
+      expect(
+        formatDuration(const Duration(hours: 1, minutes: 4)),
+        '1 hr 4 min',
+      );
+      expect(
+        formatDuration(const Duration(seconds: 42), precise: false),
+        'under a minute',
+      );
     });
   });
 
   test('formatCountdown pads seconds and handles hours', () {
     expect(formatCountdown(const Duration(minutes: 3, seconds: 7)), '3:07');
-    expect(formatCountdown(const Duration(hours: 1, minutes: 2, seconds: 3)), '1:02:03');
+    expect(
+      formatCountdown(const Duration(hours: 1, minutes: 2, seconds: 3)),
+      '1:02:03',
+    );
     expect(formatCountdown(const Duration(seconds: -4)), '0:00');
   });
 

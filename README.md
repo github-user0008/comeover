@@ -27,8 +27,11 @@ Screenshots come from the web build in demo mode (`Watch a live demo`).
   route, arrival radius, distance, ETA, countdown ring, route progress and stale-location hints.
 - **10-foot TV UI** — d-pad focus rings, overscan-safe layout, remote hints, a map-based meeting
   point picker for TVs without GPS, and a wide HUD rail.
-- **Material 3 Expressive + Liquid Glass** — expressive buttons/chips/rings, layered frosted glass,
-  aurora background, spring-y entrances and reduced-motion options.
+- **Material 3 Expressive (Android) + matured Liquid Glass (iOS)** — one codebase, two skins:
+  Android (phones, tablets, Android TV and Fire OS) uses generated Material 3 Expressive colour
+  roles, the Roboto Flex expressive typeface and springy stagehand motion; iOS and macOS use a
+  restrained Liquid Glass treatment with graphite surfaces, hairline rims, deep backdrop blur,
+  native SF type and Cupertino page transitions. The web build follows the browser's platform.
 - **Lock-screen live status** — while a room is open, the arrival countdown stays visible on a
   locked phone: a Live Update chip on Android 16 (including the Samsung Now Bar) and a Live
   Activity with Dynamic Island on iOS 16.1+. The system ticks the countdown natively, so it keeps

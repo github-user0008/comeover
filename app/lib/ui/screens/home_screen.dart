@@ -41,9 +41,15 @@ class HomeScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 6, child: _Hero(app: app, device: device)),
+                  Expanded(
+                    flex: 6,
+                    child: _Hero(app: app, device: device),
+                  ),
                   const SizedBox(width: 24),
-                  Expanded(flex: 5, child: _Actions(app: app, device: device)),
+                  Expanded(
+                    flex: 5,
+                    child: _Actions(app: app, device: device),
+                  ),
                 ],
               )
             else ...[
@@ -56,12 +62,17 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Row(
               children: [
-                Icon(Icons.lock_outline_rounded, size: 15, color: scheme.onSurfaceVariant),
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: 15,
+                  color: scheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Location only moves while a room is open. Kill the room and sharing stops instantly.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -69,7 +80,9 @@ class HomeScreen extends StatelessWidget {
             if (device.isTv) ...[
               const SizedBox(height: 18),
               const Center(
-                child: RemoteHint(labels: ['◀ ▶ ▲ ▼ move', 'OK select', '← back']),
+                child: RemoteHint(
+                  labels: ['◀ ▶ ▲ ▼ move', 'OK select', '← back'],
+                ),
               ),
             ],
             const SizedBox(height: 10),
@@ -110,13 +123,15 @@ class _RelayPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     final live = app.relayStatus.isLive;
     final color = switch (app.relayStatus) {
-      RelayStatus.connected => Palette.mint,
-      RelayStatus.connecting || RelayStatus.reconnecting => Palette.lemon,
-      _ => Palette.peach,
+      RelayStatus.connected => style.live,
+      RelayStatus.connecting || RelayStatus.reconnecting => style.caution,
+      _ => style.warm,
     };
-    final host = Uri.tryParse(app.config.serverUrl)?.host ?? app.config.serverUrl;
+    final host =
+        Uri.tryParse(app.config.serverUrl)?.host ?? app.config.serverUrl;
     return Tooltip(
       message: 'Realtime relay: ${app.config.serverUrl}',
       child: Glass(
@@ -135,7 +150,8 @@ class _RelayPill extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               live ? 'Relay live · $host' : app.relayStatus.label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.labelSmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -152,6 +168,7 @@ class _ProfileChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Glass(
       borderRadius: 999,
       blur: 10,
@@ -167,11 +184,17 @@ class _ProfileChip extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [scheme.primary.withValues(alpha: 0.8), scheme.secondary.withValues(alpha: 0.5)],
+                colors: [
+                  scheme.primary.withValues(alpha: 0.8),
+                  scheme.secondary.withValues(alpha: 0.5),
+                ],
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+              border: Border.all(color: style.chipBorder),
             ),
-            child: Text(app.profile.avatar, style: const TextStyle(fontSize: 20, height: 1)),
+            child: Text(
+              app.profile.avatar,
+              style: const TextStyle(fontSize: 20, height: 1),
+            ),
           ),
           const SizedBox(width: 10),
           Text(
@@ -179,7 +202,11 @@ class _ProfileChip extends StatelessWidget {
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(width: 6),
-          Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: scheme.onSurfaceVariant),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 18,
+            color: scheme.onSurfaceVariant,
+          ),
         ],
       ),
     );
@@ -195,6 +222,7 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Glass(
       borderRadius: 38,
       padding: EdgeInsets.all(device.isTv ? 34 : 26),
@@ -207,29 +235,23 @@ class _Hero extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 'REAL-TIME ARRIVALS',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Palette.mint,
-                      letterSpacing: 1.8,
-                    ),
+                style: Theme.of(context).textTheme.labelSmall
+                    ?.copyWith(color: style.live, letterSpacing: 1.8),
               ),
             ],
           ),
           const SizedBox(height: 18),
           GradientText(
             'Invite someone\nover.',
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontSize: device.isTv ? 50 : 42,
-                  height: 1.0,
-                ),
+            style: Theme.of(context).textTheme.displaySmall
+                ?.copyWith(fontSize: device.isTv ? 50 : 42, height: 1.0),
           ),
           const SizedBox(height: 14),
           Text(
             'Send a code. They join in a tap. You watch their live distance, ETA and '
             'second-by-second countdown until they knock.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.45,
-                ),
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: scheme.onSurfaceVariant, height: 1.45),
           ),
           const SizedBox(height: 6),
           RouteIllustration(
@@ -260,19 +282,24 @@ class _MiniChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: style.chipFill,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: style.chipBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: scheme.onSurfaceVariant),
           const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: scheme.onSurfaceVariant),
+          ),
         ],
       ),
     );
@@ -294,7 +321,9 @@ class _Actions extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => MapPickerScreen(
             initial: app.myPoint ?? const LatLng(12.9716, 77.5946),
-            title: demo ? 'Where should they arrive?' : 'Set your meeting point',
+            title: demo
+                ? 'Where should they arrive?'
+                : 'Set your meeting point',
             confirmLabel: demo ? 'Start demo' : 'Use this point',
           ),
         ),
@@ -372,7 +401,8 @@ class _Actions extends StatelessWidget {
                       onTap: () => app.prefs.clearRecent(),
                       child: Text(
                         'Clear',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.labelSmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ),
                 ],
@@ -391,7 +421,9 @@ class _Actions extends StatelessWidget {
             _SetupRow(
               icon: Icons.public_rounded,
               label: 'Relay',
-              value: Uri.tryParse(app.config.serverUrl)?.authority ?? app.config.serverUrl,
+              value:
+                  Uri.tryParse(app.config.serverUrl)?.authority ??
+                  app.config.serverUrl,
               onTap: () => openSettings(context),
             ),
             const SizedBox(height: 8),
@@ -407,7 +439,9 @@ class _Actions extends StatelessWidget {
     );
   }
 
-  String demoTitle(AppController app) => app.profile.name.isEmpty ? 'Start here' : 'Start here, ${app.profile.name.split(' ').first}';
+  String demoTitle(AppController app) => app.profile.name.isEmpty
+      ? 'Start here'
+      : 'Start here, ${app.profile.name.split(' ').first}';
 }
 
 class _RecentChip extends StatelessWidget {
@@ -418,14 +452,16 @@ class _RecentChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = AppStyle.of(context);
     return ActionChip(
       onPressed: onTap,
       avatar: const Icon(Icons.history_rounded, size: 16),
       label: Text(code),
-      labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(letterSpacing: 1.4),
+      labelStyle: Theme.of(context).textTheme.labelMedium
+          ?.copyWith(letterSpacing: 1.4),
       shape: const StadiumBorder(),
-      backgroundColor: Colors.white.withValues(alpha: 0.06),
-      side: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+      backgroundColor: style.chipFill,
+      side: BorderSide(color: style.chipBorder),
     );
   }
 }
@@ -455,7 +491,11 @@ class _SetupRow extends StatelessWidget {
           children: [
             Icon(icon, size: 18, color: scheme.onSurfaceVariant),
             const SizedBox(width: 10),
-            Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
             const Spacer(),
             Flexible(
               child: Text(
@@ -467,7 +507,11 @@ class _SetupRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded, size: 18, color: scheme.onSurfaceVariant),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: scheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
@@ -482,10 +526,19 @@ class _HowItWorks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = AppStyle.of(context);
     final steps = [
       (Icons.qr_code_2_rounded, 'Invite', 'Share a 6-character code or link.'),
-      (Icons.group_add_rounded, 'They join', 'One tap. No accounts, no sign-up.'),
-      (Icons.near_me_rounded, 'Watch them arrive', 'Distance, ETA and countdown, live.'),
+      (
+        Icons.group_add_rounded,
+        'They join',
+        'One tap. No accounts, no sign-up.',
+      ),
+      (
+        Icons.near_me_rounded,
+        'Watch them arrive',
+        'Distance, ETA and countdown, live.',
+      ),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,7 +551,9 @@ class _HowItWorks extends StatelessWidget {
           children: [
             for (var i = 0; i < steps.length; i++)
               SizedBox(
-                width: device.isExpanded ? (device.contentWidth - 24) / 3 : double.infinity,
+                width: device.isExpanded
+                    ? (device.contentWidth - 24) / 3
+                    : double.infinity,
                 child: RiseIn(
                   delay: Duration(milliseconds: 40 * i),
                   child: Glass(
@@ -513,8 +568,8 @@ class _HowItWorks extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.08),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                            color: style.chipFill,
+                            border: Border.all(color: style.chipBorder),
                           ),
                           child: Icon(steps[i].$1, size: 20),
                         ),
@@ -523,12 +578,18 @@ class _HowItWorks extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('${i + 1}. ${steps[i].$2}', style: Theme.of(context).textTheme.titleSmall),
+                              Text(
+                                '${i + 1}. ${steps[i].$2}',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
                               const SizedBox(height: 2),
                               Text(
                                 steps[i].$3,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                               ),
                             ],

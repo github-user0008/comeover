@@ -19,7 +19,10 @@ class MemberLocation {
   final double? speed;
   final double? battery;
 
-  factory MemberLocation.fromJson(Map<String, dynamic> json, {DateTime? receivedAt}) {
+  factory MemberLocation.fromJson(
+    Map<String, dynamic> json, {
+    DateTime? receivedAt,
+  }) {
     final ts = json['ts'];
     return MemberLocation(
       point: LatLng(
@@ -30,13 +33,16 @@ class MemberLocation {
       heading: (json['heading'] as num?)?.toDouble(),
       speed: (json['speed'] as num?)?.toDouble(),
       battery: (json['battery'] as num?)?.toDouble(),
-      timestamp: receivedAt ?? (ts is num
-          ? DateTime.fromMillisecondsSinceEpoch(ts.toInt())
-          : DateTime.now()),
+      timestamp:
+          receivedAt ??
+          (ts is num
+              ? DateTime.fromMillisecondsSinceEpoch(ts.toInt())
+              : DateTime.now()),
     );
   }
 
-  MemberLocation copyWith({LatLng? point, DateTime? timestamp}) => MemberLocation(
+  MemberLocation copyWith({LatLng? point, DateTime? timestamp}) =>
+      MemberLocation(
         point: point ?? this.point,
         accuracy: accuracy,
         timestamp: timestamp ?? this.timestamp,
@@ -85,7 +91,10 @@ class Member {
     final rawLocation = json['location'];
     MemberLocation? location;
     if (rawLocation is Map<String, dynamic>) {
-      location = MemberLocation.fromJson(rawLocation, receivedAt: receivedAt ?? DateTime.now());
+      location = MemberLocation.fromJson(
+        rawLocation,
+        receivedAt: receivedAt ?? DateTime.now(),
+      );
     } else if (rawLocation is Map) {
       location = MemberLocation.fromJson(
         rawLocation.cast<String, dynamic>(),
@@ -104,40 +113,47 @@ class Member {
       demo: json['demo'] == true,
       online: json['online'] != false,
       location: location,
-      receivedAt: location != null
-          ? (receivedAt ?? DateTime.now())
-          : null,
+      receivedAt: location != null ? (receivedAt ?? DateTime.now()) : null,
       hasLocation: location != null,
     );
   }
 
-  Member withLocation(MemberLocation? next, {DateTime? receivedAt, bool? online}) => Member(
-        id: id,
-        name: name,
-        avatar: avatar,
-        colorHex: colorHex,
-        device: device,
-        isHost: isHost,
-        demo: demo,
-        online: online ?? this.online,
-        location: next ?? location,
-        receivedAt: next != null ? (receivedAt ?? DateTime.now()) : this.receivedAt,
-        hasLocation: next != null || hasLocation,
-      );
+  Member withLocation(
+    MemberLocation? next, {
+    DateTime? receivedAt,
+    bool? online,
+  }) => Member(
+    id: id,
+    name: name,
+    avatar: avatar,
+    colorHex: colorHex,
+    device: device,
+    isHost: isHost,
+    demo: demo,
+    online: online ?? this.online,
+    location: next ?? location,
+    receivedAt: next != null ? (receivedAt ?? DateTime.now()) : this.receivedAt,
+    hasLocation: next != null || hasLocation,
+  );
 
-  Member copyWith({bool? online, String? name, String? avatar, String? device}) => Member(
-        id: id,
-        name: name ?? this.name,
-        avatar: avatar ?? this.avatar,
-        colorHex: colorHex,
-        device: device ?? this.device,
-        isHost: isHost,
-        demo: demo,
-        online: online ?? this.online,
-        location: location,
-        receivedAt: receivedAt,
-        hasLocation: hasLocation,
-      );
+  Member copyWith({
+    bool? online,
+    String? name,
+    String? avatar,
+    String? device,
+  }) => Member(
+    id: id,
+    name: name ?? this.name,
+    avatar: avatar ?? this.avatar,
+    colorHex: colorHex,
+    device: device ?? this.device,
+    isHost: isHost,
+    demo: demo,
+    online: online ?? this.online,
+    location: location,
+    receivedAt: receivedAt,
+    hasLocation: hasLocation,
+  );
 }
 
 class RoomSettings {
@@ -154,16 +170,20 @@ class RoomSettings {
   bool get isApproximate => precision == 'approximate';
 
   factory RoomSettings.fromJson(Map<String, dynamic> json) => RoomSettings(
-        units: unitSystemFrom(json['units'] as String?),
-        precision: (json['precision'] as String?) ?? 'exact',
-        arrivalRadius: (json['arrivalRadius'] as num?)?.toDouble() ?? 40,
-      );
+    units: unitSystemFrom(json['units'] as String?),
+    precision: (json['precision'] as String?) ?? 'exact',
+    arrivalRadius: (json['arrivalRadius'] as num?)?.toDouble() ?? 40,
+  );
 
-  RoomSettings copyWith({UnitSystem? units, String? precision, double? arrivalRadius}) => RoomSettings(
-        units: units ?? this.units,
-        precision: precision ?? this.precision,
-        arrivalRadius: arrivalRadius ?? this.arrivalRadius,
-      );
+  RoomSettings copyWith({
+    UnitSystem? units,
+    String? precision,
+    double? arrivalRadius,
+  }) => RoomSettings(
+    units: units ?? this.units,
+    precision: precision ?? this.precision,
+    arrivalRadius: arrivalRadius ?? this.arrivalRadius,
+  );
 }
 
 class RoomModel {
@@ -186,26 +206,28 @@ class RoomModel {
   final RoomSettings settings;
 
   factory RoomModel.fromJson(Map<String, dynamic> json) => RoomModel(
-        id: json['id']?.toString() ?? '',
-        code: (json['code'] as String?) ?? '',
-        hostId: json['hostId']?.toString() ?? '',
-        createdAt: _date(json['createdAt']),
-        expiresAt: _date(json['expiresAt']),
-        ended: json['ended'] == true,
-        settings: json['settings'] is Map
-            ? RoomSettings.fromJson((json['settings'] as Map).cast<String, dynamic>())
-            : const RoomSettings(),
-      );
+    id: json['id']?.toString() ?? '',
+    code: (json['code'] as String?) ?? '',
+    hostId: json['hostId']?.toString() ?? '',
+    createdAt: _date(json['createdAt']),
+    expiresAt: _date(json['expiresAt']),
+    ended: json['ended'] == true,
+    settings: json['settings'] is Map
+        ? RoomSettings.fromJson(
+            (json['settings'] as Map).cast<String, dynamic>(),
+          )
+        : const RoomSettings(),
+  );
 
   RoomModel copyWith({RoomSettings? settings, bool? ended}) => RoomModel(
-        id: id,
-        code: code,
-        hostId: hostId,
-        createdAt: createdAt,
-        expiresAt: expiresAt,
-        ended: ended ?? this.ended,
-        settings: settings ?? this.settings,
-      );
+    id: id,
+    code: code,
+    hostId: hostId,
+    createdAt: createdAt,
+    expiresAt: expiresAt,
+    ended: ended ?? this.ended,
+    settings: settings ?? this.settings,
+  );
 
   static DateTime _date(Object? value) {
     if (value is num) return DateTime.fromMillisecondsSinceEpoch(value.toInt());

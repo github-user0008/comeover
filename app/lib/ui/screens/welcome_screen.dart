@@ -47,7 +47,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final app = AppScope.of(context);
     final device = DeviceScope.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final maxWidth = device.isTv ? 720.0 : device.isTablet ? 620.0 : 520.0;
+    final maxWidth = device.isTv
+        ? 720.0
+        : device.isTablet
+        ? 620.0
+        : 520.0;
 
     return PageFrame(
       padding: device.isTv
@@ -65,9 +69,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 Text(
                   'Invite someone. Watch the distance shrink.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -111,7 +114,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   const SizedBox(height: 26),
                   ExpressiveButton(
-                    label: app.busy || _submitting ? 'Getting started…' : 'Let me in',
+                    label: app.busy || _submitting
+                        ? 'Getting started…'
+                        : 'Let me in',
                     icon: Icons.arrow_forward_rounded,
                     expanded: true,
                     height: device.isTv ? 64 : 58,
@@ -128,9 +133,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               padding: const EdgeInsets.only(bottom: 10),
               child: Text(
                 'Works on FireOS TV, Android TV, Android & iOS',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ),
           ),

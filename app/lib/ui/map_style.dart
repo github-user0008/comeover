@@ -12,21 +12,23 @@ class MapTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = dark ? 'dark_all' : 'light_all';
+    final style = AppStyle.of(context);
+    final mapStyle = dark ? 'dark_all' : 'light_all';
     return TileLayer(
-      urlTemplate: 'https://{s}.basemaps.cartocdn.com/$style/{z}/{x}/{y}.png',
+      urlTemplate:
+          'https://{s}.basemaps.cartocdn.com/$mapStyle/{z}/{x}/{y}.png',
       subdomains: const ['a', 'b', 'c', 'd'],
       userAgentPackageName: 'dev.comeover.app',
       maxNativeZoom: 19,
       maxZoom: 19,
       tileBuilder: dark
           ? (context, tileWidget, tile) => ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  Palette.violet.withValues(alpha: 0.10),
-                  BlendMode.softLight,
-                ),
-                child: tileWidget,
-              )
+              colorFilter: ColorFilter.mode(
+                style.mapTint.withValues(alpha: style.isMaterial ? 0.10 : 0.16),
+                style.mapTintBlend,
+              ),
+              child: tileWidget,
+            )
           : null,
     );
   }
@@ -49,10 +51,10 @@ class MapCredit extends StatelessWidget {
         child: Text(
           '© OpenStreetMap · CARTO',
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.white.withValues(alpha: 0.75),
-                fontSize: 9,
-                letterSpacing: 0.2,
-              ),
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: 9,
+            letterSpacing: 0.2,
+          ),
         ),
       ),
     );

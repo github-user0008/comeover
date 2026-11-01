@@ -20,7 +20,9 @@ Future<void> openSettings(BuildContext context) async {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.55),
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: const FractionallySizedBox(
           heightFactor: 0.94,
           child: SettingsSheet(),
@@ -68,7 +70,9 @@ class _SettingsSheetState extends State<SettingsSheet> {
     _seeded = true;
     final app = AppScope.of(context);
     _nameController = TextEditingController(text: app.profile.name);
-    _serverController = TextEditingController(text: app.serverOverride ?? app.config.serverUrl);
+    _serverController = TextEditingController(
+      text: app.serverOverride ?? app.config.serverUrl,
+    );
     _avatar = app.profile.avatar;
   }
 
@@ -132,12 +136,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Settings', style: Theme.of(context).textTheme.headlineSmall),
+                      Text(
+                        'Settings',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                       Text(
                         'Tune the room, the look, the relay.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -176,9 +182,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                     scheme.secondary.withValues(alpha: 0.55),
                                   ],
                                 ),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+                                border: Border.all(
+                                  color: AppStyle.of(context).chipBorder,
+                                ),
                               ),
-                              child: Text(_avatar, style: const TextStyle(fontSize: 30, height: 1)),
+                              child: Text(
+                                _avatar,
+                                style: const TextStyle(fontSize: 30, height: 1),
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -204,7 +215,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         const SizedBox(height: 14),
                         AvatarPicker(
                           selected: _avatar,
-                          onSelected: (value) => setState(() => _avatar = value),
+                          onSelected: (value) =>
+                              setState(() => _avatar = value),
                           size: 44,
                           spacing: 8,
                         ),
@@ -218,8 +230,16 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       value: app.units,
                       onChanged: app.setUnits,
                       options: const [
-                        ToggleOption(value: UnitSystem.metric, label: 'Metric · km', icon: Icons.straighten_rounded),
-                        ToggleOption(value: UnitSystem.imperial, label: 'Imperial · mi', icon: Icons.square_foot_rounded),
+                        ToggleOption(
+                          value: UnitSystem.metric,
+                          label: 'Metric · km',
+                          icon: Icons.straighten_rounded,
+                        ),
+                        ToggleOption(
+                          value: UnitSystem.imperial,
+                          label: 'Imperial · mi',
+                          icon: Icons.square_foot_rounded,
+                        ),
                       ],
                     ),
                   ),
@@ -232,8 +252,16 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           value: app.themeMode,
                           onChanged: app.setThemeMode,
                           options: const [
-                            ToggleOption(value: ThemeMode.dark, label: 'Night', icon: Icons.dark_mode_outlined),
-                            ToggleOption(value: ThemeMode.light, label: 'Day', icon: Icons.light_mode_outlined),
+                            ToggleOption(
+                              value: ThemeMode.dark,
+                              label: 'Night',
+                              icon: Icons.dark_mode_outlined,
+                            ),
+                            ToggleOption(
+                              value: ThemeMode.light,
+                              label: 'Day',
+                              icon: Icons.light_mode_outlined,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -254,9 +282,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           title: 'TV layout',
                           subtitle: 'Bigger buttons, focus rings and overscan padding.',
                           child: TogglePill<String>(
-                            value: app.forceTv == null ? 'auto' : (app.forceTv! ? 'on' : 'off'),
+                            value: app.forceTv == null
+                                ? 'auto'
+                                : (app.forceTv! ? 'on' : 'off'),
                             expanded: false,
-                            onChanged: (value) => app.setForceTv(value == 'auto' ? null : value == 'on'),
+                            onChanged: (value) => app.setForceTv(
+                              value == 'auto' ? null : value == 'on',
+                            ),
                             options: const [
                               ToggleOption(value: 'auto', label: 'Auto'),
                               ToggleOption(value: 'on', label: 'On'),
@@ -292,13 +324,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             Expanded(
                               child: Text(
                                 _liveStatusNote(),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: scheme.onSurfaceVariant,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: scheme.onSurfaceVariant),
                               ),
                             ),
                             TextButton(
-                              onPressed: () => LiveStatusBridge().openSettings(),
+                              onPressed: () =>
+                                  LiveStatusBridge().openSettings(),
                               child: const Text('Settings'),
                             ),
                           ],
@@ -319,8 +351,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                 ? 'Everyone sees a ~110 m area instead of a precise point.'
                                 : 'Blur your own position before it leaves this device. The host controls room-wide precision.',
                             child: Switch.adaptive(
-                              value: app.isHost ? app.room!.settings.isApproximate : app.approximateLocal,
-                              onChanged: (value) => app.setPrecision(approximate: value),
+                              value: app.isHost
+                                  ? app.room!.settings.isApproximate
+                                  : app.approximateLocal,
+                              onChanged: (value) =>
+                                  app.setPrecision(approximate: value),
                             ),
                           ),
                           _LabeledRow(
@@ -340,19 +375,30 @@ class _SettingsSheetState extends State<SettingsSheet> {
                                     title: 'Arrival radius',
                                     subtitle: 'Turns the countdown into a celebration inside this circle.',
                                     child: Text(
-                                      formatDistance(app.room!.settings.arrivalRadius, app.units),
-                                      style: Theme.of(context).textTheme.titleSmall,
+                                      formatDistance(
+                                        app.room!.settings.arrivalRadius,
+                                        app.units,
+                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                             Slider(
-                              value: app.room!.settings.arrivalRadius.clamp(15, 200),
+                              value: app.room!.settings.arrivalRadius.clamp(
+                                15,
+                                200,
+                              ),
                               min: 15,
                               max: 200,
                               divisions: 37,
-                              label: formatDistance(app.room!.settings.arrivalRadius, app.units),
+                              label: formatDistance(
+                                app.room!.settings.arrivalRadius,
+                                app.units,
+                              ),
                               onChanged: app.setArrivalRadius,
                             ),
                           ],
@@ -378,24 +424,34 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         Text(
                           'Both devices (and the TV) must reach this address. On a LAN, use your '
                           "computer's IP, not localhost.",
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                         if (_serverError != null) ...[
                           const SizedBox(height: 8),
-                          Text(_serverError!, style: TextStyle(color: scheme.error, fontSize: 12)),
+                          Text(
+                            _serverError!,
+                            style: TextStyle(color: scheme.error, fontSize: 12),
+                          ),
                         ],
                         if (_relayOk != null) ...[
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
-                                _relayOk! ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                                _relayOk!
+                                    ? Icons.check_circle_rounded
+                                    : Icons.error_outline_rounded,
                                 size: 16,
-                                color: _relayOk! ? Palette.mint : scheme.error,
+                                color: _relayOk!
+                                    ? AppStyle.of(context).live
+                                    : scheme.error,
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                _relayOk! ? 'Relay answered. You are good to go.' : 'Relay did not answer.',
+                                _relayOk!
+                                    ? 'Relay answered. You are good to go.'
+                                    : 'Relay did not answer.',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -420,7 +476,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                               tone: ExpressiveTone.glass,
                               height: 52,
                               onPressed: () {
-                                _serverController.text = app.baseConfig.serverUrl;
+                                _serverController.text =
+                                    app.baseConfig.serverUrl;
                                 app.setServerOverride(null);
                               },
                             ),
@@ -432,10 +489,10 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             LiveRelayStatus(status: app.relayStatus),
                             const Spacer(),
                             Text(
-                              Uri.tryParse(app.config.serverUrl)?.authority ?? app.config.serverUrl,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: scheme.onSurfaceVariant,
-                                  ),
+                              Uri.tryParse(app.config.serverUrl)?.authority ??
+                                  app.config.serverUrl,
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -457,17 +514,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           'In a room, the arrival countdown stays on your lock screen: a Live Update on '
                           'Android 16 (including the Samsung Now Bar) and a Live Activity with Dynamic '
                           'Island on iOS 16.1 and newer.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           'Invites last 6 hours. Locations live in memory on your relay and are never '
                           'written to a database. Maps © OpenStreetMap contributors, tiles © CARTO.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: scheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -491,16 +546,16 @@ class _SettingsSheetState extends State<SettingsSheet> {
     return 'Available on Android and iPhone. This device will keep the in-app HUD.';
   }
 
-  Widget _section(BuildContext context, {required String title, required Widget child}) {
+  Widget _section(
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionLabel(title),
-          const SizedBox(height: 10),
-          child,
-        ],
+        children: [SectionLabel(title), const SizedBox(height: 10), child],
       ),
     );
   }
@@ -534,7 +589,8 @@ class _ToggleRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -548,7 +604,11 @@ class _ToggleRow extends StatelessWidget {
 }
 
 class _LabeledRow extends StatelessWidget {
-  const _LabeledRow({required this.title, required this.subtitle, required this.child});
+  const _LabeledRow({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
 
   final String title;
   final String subtitle;
@@ -569,7 +629,8 @@ class _LabeledRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -589,11 +650,13 @@ class LiveRelayStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = AppStyle.of(context);
     final color = status.isLive
-        ? Palette.mint
-        : (status == RelayStatus.connecting || status == RelayStatus.reconnecting)
-            ? Palette.lemon
-            : Palette.peach;
+        ? style.live
+        : (status == RelayStatus.connecting ||
+              status == RelayStatus.reconnecting)
+        ? style.caution
+        : style.warm;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -605,9 +668,8 @@ class LiveRelayStatus extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           status.label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );

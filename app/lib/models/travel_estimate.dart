@@ -44,11 +44,12 @@ class TravelEstimate {
   }
 
   double get speed => assumedSpeed(
-        traveller.location?.speed,
-        driving: (traveller.location?.speed ?? 0) > 5,
-      );
+    traveller.location?.speed,
+    driving: (traveller.location?.speed ?? 0) > 5,
+  );
 
-  String get compass => compassLabel(bearingDegrees(origin, traveller.location!.point));
+  String get compass =>
+      compassLabel(bearingDegrees(origin, traveller.location!.point));
 
   bool get isApproximate => accuracy >= 90;
 
@@ -70,7 +71,9 @@ class TravelEstimate {
     final eta = Duration(seconds: seconds.round());
     final start = (startMeters ?? meters);
     final denominator = start - arrivalRadius;
-    final rawProgress = denominator <= 1 ? 1.0 : 1 - (meters - arrivalRadius) / denominator;
+    final rawProgress = denominator <= 1
+        ? 1.0
+        : 1 - (meters - arrivalRadius) / denominator;
     return TravelEstimate(
       traveller: traveller,
       origin: origin,
@@ -87,7 +90,16 @@ class TravelEstimate {
   }
 
   static String compassLabel(double bearing) {
-    const labels = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+    const labels = [
+      'north',
+      'north-east',
+      'east',
+      'south-east',
+      'south',
+      'south-west',
+      'west',
+      'north-west',
+    ];
     final index = ((bearing % 360) / 45).round() % 8;
     return labels[index];
   }

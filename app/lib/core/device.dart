@@ -54,8 +54,8 @@ class DeviceProfile {
     final kind = tv
         ? DeviceClass.tv
         : tablet
-            ? DeviceClass.tablet
-            : DeviceClass.phone;
+        ? DeviceClass.tablet
+        : DeviceClass.phone;
     final base = tv ? 16.0 : 0.0;
     return DeviceProfile(
       kind: kind,
@@ -71,8 +71,8 @@ class DeviceProfile {
   }
 
   String get label => switch (kind) {
-        DeviceClass.tv => 'TV',
-        DeviceClass.tablet => 'Tablet',
-        DeviceClass.phone => 'Phone',
-      };
+    DeviceClass.tv => 'TV',
+    DeviceClass.tablet => 'Tablet',
+    DeviceClass.phone => 'Phone',
+  };
 }

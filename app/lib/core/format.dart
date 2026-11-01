@@ -81,9 +81,14 @@ String relativeTimeFromNow(DateTime time, {DateTime? now}) {
 }
 
 String initialsFor(String name) {
-  final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  final parts = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return '?';
-  String first(String value) => String.fromCharCode(value.runes.first).toUpperCase();
+  String first(String value) =>
+      String.fromCharCode(value.runes.first).toUpperCase();
   if (parts.length == 1) return first(parts.first);
   return first(parts.first) + first(parts.last);
 }

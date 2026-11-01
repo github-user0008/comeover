@@ -29,19 +29,19 @@ class LiveStatusSnapshot {
   });
 
   const LiveStatusSnapshot.inactive()
-      : active = false,
-        phase = 'idle',
-        title = 'ComeOver',
-        subtitle = 'No room open',
-        shortText = '',
-        distance = '',
-        eta = '',
-        memberName = '',
-        memberAvatar = '📍',
-        roomCode = '',
-        progress = 0,
-        arrivalAt = null,
-        updatedAt = null;
+    : active = false,
+      phase = 'idle',
+      title = 'ComeOver',
+      subtitle = 'No room open',
+      shortText = '',
+      distance = '',
+      eta = '',
+      memberName = '',
+      memberAvatar = '📍',
+      roomCode = '',
+      progress = 0,
+      arrivalAt = null,
+      updatedAt = null;
 
   final bool active;
 
@@ -69,32 +69,32 @@ class LiveStatusSnapshot {
   /// Coarse identity of the content. The countdown ticks natively, so we only
   /// push when the meaningful text crosses a boundary.
   String get signature => [
-        active ? 1 : 0,
-        phase,
-        title,
-        subtitle,
-        shortText,
-        distance,
-        (progress * 100).round(),
-        arrivalAt?.millisecondsSinceEpoch ?? 0,
-        roomCode,
-      ].join('|');
+    active ? 1 : 0,
+    phase,
+    title,
+    subtitle,
+    shortText,
+    distance,
+    (progress * 100).round(),
+    arrivalAt?.millisecondsSinceEpoch ?? 0,
+    roomCode,
+  ].join('|');
 
   Map<String, Object?> toMap() => {
-        'active': active,
-        'phase': phase,
-        'title': title,
-        'subtitle': subtitle,
-        'shortText': shortText,
-        'distance': distance,
-        'eta': eta,
-        'memberName': memberName,
-        'memberAvatar': memberAvatar,
-        'roomCode': roomCode,
-        'progress': progress.clamp(0.0, 1.0),
-        'arrivalAt': arrivalAt?.millisecondsSinceEpoch,
-        'updatedAt': (updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
-      };
+    'active': active,
+    'phase': phase,
+    'title': title,
+    'subtitle': subtitle,
+    'shortText': shortText,
+    'distance': distance,
+    'eta': eta,
+    'memberName': memberName,
+    'memberAvatar': memberAvatar,
+    'roomCode': roomCode,
+    'progress': progress.clamp(0.0, 1.0),
+    'arrivalAt': arrivalAt?.millisecondsSinceEpoch,
+    'updatedAt': (updatedAt ?? DateTime.now()).millisecondsSinceEpoch,
+  };
 }
 
 /// Builds the lock-screen snapshot from the room controller.
@@ -106,7 +106,8 @@ LiveStatusSnapshot buildLiveStatus(AppController app) {
   // `trackedMember` only returns people who have already shared a position.
   // Fall back to any other member so "waiting" can name them before their
   // first fix arrives.
-  final tracked = estimate?.traveller ??
+  final tracked =
+      estimate?.traveller ??
       app.trackedMember ??
       (app.others.isEmpty ? null : app.others.first);
   final units = app.units;
@@ -172,7 +173,9 @@ LiveStatusSnapshot buildLiveStatus(AppController app) {
   return LiveStatusSnapshot(
     active: true,
     phase: 'waiting',
-    title: app.isHost ? 'Room ${room.code} is open' : 'You are in room ${room.code}',
+    title: app.isHost
+        ? 'Room ${room.code} is open'
+        : 'You are in room ${room.code}',
     subtitle: app.isHost
         ? 'Share the invite link so someone can come over.'
         : 'Waiting for the host to share their location.',
@@ -223,7 +226,8 @@ class LiveStatusBridge {
 
   Future<bool> start(LiveStatusSnapshot snapshot) async {
     try {
-      return await _channel.invokeMethod<bool>('start', snapshot.toMap()) ?? false;
+      return await _channel.invokeMethod<bool>('start', snapshot.toMap()) ??
+          false;
     } catch (_) {
       return false;
     }
@@ -261,7 +265,8 @@ class LiveStatusBridge {
 /// Keeps native live status in sync with [AppController] without flooding the
 /// platform channel once per ticker second.
 class LiveStatusCoordinator {
-  LiveStatusCoordinator({LiveStatusBridge? bridge}) : _bridge = bridge ?? LiveStatusBridge();
+  LiveStatusCoordinator({LiveStatusBridge? bridge})
+    : _bridge = bridge ?? LiveStatusBridge();
 
   static final instance = LiveStatusCoordinator();
 
@@ -295,7 +300,9 @@ class LiveStatusCoordinator {
     // change the meaningful lock-screen text.
     final signature = snapshot.signature;
     final now = DateTime.now();
-    final due = signature != _lastSignature || now.difference(_lastPush) >= const Duration(seconds: 20);
+    final due =
+        signature != _lastSignature ||
+        now.difference(_lastPush) >= const Duration(seconds: 20);
     if (!due) return;
     if (_inflight) return;
     _inflight = true;
@@ -309,9 +316,12 @@ class LiveStatusCoordinator {
       if (_running) {
         await _bridge.update(snapshot);
       } else {
-        if (now.difference(_lastStartAttempt) < const Duration(seconds: 15)) return;
+        if (now.difference(_lastStartAttempt) < const Duration(seconds: 15)) {
+          return;
+        }
         _lastStartAttempt = now;
-        if (!_backgroundRequested && defaultTargetPlatform == TargetPlatform.iOS) {
+        if (!_backgroundRequested &&
+            defaultTargetPlatform == TargetPlatform.iOS) {
           _backgroundRequested = true;
           await _bridge.requestBackgroundLocation();
         }
