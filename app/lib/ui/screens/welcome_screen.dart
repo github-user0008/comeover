@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app.dart';
 import '../../core/motion.dart';
+import '../../core/theme.dart';
 import '../aurora_background.dart';
 import '../avatar_picker.dart';
 import '../brand.dart';
@@ -47,6 +48,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     final app = AppScope.of(context);
     final device = DeviceScope.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final style = AppStyle.of(context);
+    final dark = scheme.brightness == Brightness.dark;
     final maxWidth = device.isTv
         ? 720.0
         : device.isTablet
@@ -64,7 +67,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           RiseIn(
             child: Column(
               children: [
-                const Wordmark(tagline: true),
+                Wordmark(display: !device.isTv, tagline: true),
                 const SizedBox(height: 10),
                 Text(
                   'Invite someone. Watch the distance shrink.',
@@ -85,6 +88,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             delay: const Duration(milliseconds: 200),
             child: Glass(
               borderRadius: 34,
+              // On the material language the form card carries the wallpaper
+              // hue so the Expressive look is unmistakable from the first run.
+              tint: style.isMaterial
+                  ? (dark ? scheme.primary : scheme.tertiary)
+                  : null,
               padding: EdgeInsets.all(device.isTv ? 34 : 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

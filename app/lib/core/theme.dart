@@ -589,7 +589,7 @@ class AppTheme {
         auroraPrimary: scheme.primary,
         auroraSecondary: scheme.secondary,
         auroraTertiary: scheme.tertiary,
-        auroraStrength: dark ? 0.62 : 0.42,
+        auroraStrength: dark ? 0.80 : 0.50,
         backgroundPeriod: const Duration(seconds: 22),
         glassBlur: 0,
         glassSaturation: 1.0,
@@ -604,7 +604,10 @@ class AppTheme {
         inputRadius: 26,
         buttonRadius: 999,
         pressScale: 0.94,
-        chipFill: scheme.surfaceContainerHigh,
+        chipFill: Color.alphaBlend(
+          scheme.primary.withValues(alpha: 0.14),
+          scheme.surfaceContainerHigh,
+        ),
         chipBorder: scheme.outlineVariant.withValues(
           alpha: highContrast ? 1 : 0.75,
         ),

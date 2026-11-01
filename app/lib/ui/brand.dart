@@ -137,23 +137,48 @@ class _MarkPainter extends CustomPainter {
 }
 
 class Wordmark extends StatelessWidget {
-  const Wordmark({super.key, this.compact = false, this.tagline = false});
+  const Wordmark({
+    super.key,
+    this.compact = false,
+    this.tagline = false,
+    this.display = false,
+  });
 
   final bool compact;
   final bool tagline;
+  final bool display;
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.headlineSmall?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.8,
-      fontSize: compact ? 18 : 26,
-    );
+    final style = display
+        ? Theme.of(context).textTheme.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1.4,
+            height: 1.0,
+          )
+        : Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.8,
+            fontSize: compact ? 18 : 26,
+          );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        BrandMark(size: compact ? 30 : 40, animated: !compact),
-        SizedBox(width: compact ? 8 : 12),
+        BrandMark(
+          size: display
+              ? 54
+              : compact
+              ? 30
+              : 40,
+          animated: !compact,
+        ),
+        SizedBox(
+          width: display
+              ? 16
+              : compact
+              ? 8
+              : 12,
+        ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

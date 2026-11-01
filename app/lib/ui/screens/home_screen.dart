@@ -225,6 +225,7 @@ class _Hero extends StatelessWidget {
     final style = AppStyle.of(context);
     return Glass(
       borderRadius: 38,
+      tint: style.isMaterial ? scheme.primary : null,
       padding: EdgeInsets.all(device.isTv ? 34 : 26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
