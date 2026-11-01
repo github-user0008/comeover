@@ -1,19 +1,21 @@
 name: comeover
 description: "ComeOver — invite someone, watch them arrive. Live distance, ETA and countdown on phones, tablets and TV."
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.13.7
 
 dependencies:
   app_links: ^7.2.2
+  dynamic_color: ^2.1.0
   flutter:
     sdk: flutter
   flutter_map: ^8.3.2
   geolocator: ^14.1.2
   http: ^1.6.0
   latlong2: ^0.10.1
+  material_color_utilities: ^0.13.0
   qr_flutter: ^4.1.0
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6

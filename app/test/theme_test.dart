@@ -1,5 +1,6 @@
 import 'package:comeover/core/theme.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show ColorScheme;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -48,6 +49,34 @@ void main() {
       theme.pageTransitionsTheme.builders[TargetPlatform.iOS],
       isA<CupertinoPageTransitionsBuilder>(),
     );
+  });
+
+  test('an Android Material You scheme overtakes the brand palette', () {
+    // Simulate what DynamicColorBuilder hands back after the plugin fetched
+    // the wallpaper palette: the scheme the OS itself rendered.
+    final wallpaper = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF8BC34A), // mossy green wallpaper
+      brightness: Brightness.dark,
+    );
+
+    final themed = AppTheme.dark(
+      platform: TargetPlatform.android,
+      systemScheme: wallpaper,
+    );
+    final untouched = AppTheme.dark(platform: TargetPlatform.android);
+
+    expect(themed.colorScheme.primary, wallpaper.primary);
+    expect(themed.colorScheme.primary, isNot(untouched.colorScheme.primary));
+    expect(themed.extension<AppStyle>()!.live, wallpaper.primary);
+    expect(themed.extension<AppStyle>()!.auroraPrimary, wallpaper.primary);
+    expect(themed.textTheme.displayLarge?.fontFamily, 'RobotoFlex');
+
+    // The liquid-glass languages are never re-seeded by the system.
+    final ios = AppTheme.dark(
+      platform: TargetPlatform.iOS,
+      systemScheme: wallpaper,
+    );
+    expect(ios.colorScheme.primary, isNot(wallpaper.primary));
   });
 
   test('light and dark themes carry the style extension', () {

@@ -1,9 +1,13 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:material_color_utilities/material_color_utilities.dart' as mcu;
 
 import 'core/device.dart';
+import 'core/motion.dart';
 import 'core/theme.dart';
 import 'data/live_status.dart';
 import 'state/app_controller.dart';
@@ -62,6 +66,15 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   String? _lastError;
   String? _lastNotice;
   ThemeMode _themeMode = ThemeMode.dark;
+
+  /// Wallpaper-derived hue on Android 12+ (Material You). Null means the
+  /// device could not provide dynamic colours and the app falls back to its
+  /// own violet expressive seed — TVs and Fire OS do this too.
+  /// Wallpaper-derived scheme on Android 12+ (Material You). Null means the
+  /// device could not provide dynamic colours and the app falls back to its
+  /// own violet expressive seed — TVs and Fire OS do this too.
+  ColorScheme? _systemLightScheme;
+  ColorScheme? _systemDarkScheme;
   StreamSubscription<Uri>? _linkSubscription;
 
   @override
@@ -71,7 +84,84 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
     _themeMode = _controller.themeMode;
     _controller.addListener(_onChanged);
     _controller.bootstrap();
+    unawaited(_loadSystemScheme());
     _listenForLinks();
+  }
+
+  /// Material You: use the tonal palette the OS derived from the wallpaper in
+  /// the light of whatever wallpaper style the user picked (Android 16 ships
+  /// expressive styles, so the palette already reflects their choice). The
+  /// dynamic_color plugin hands back material_ui scheme objects, which the
+  /// Flutter [ThemeData] API cannot consume yet, so the roles are resolved
+  /// here with the same tone recipe the OS uses.
+  Future<void> _loadSystemScheme() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final palette = await DynamicColorPlugin.getCorePalette();
+      if (palette == null || !mounted) return;
+      final dark = _youScheme(palette, Brightness.dark);
+      final light = _youScheme(palette, Brightness.light);
+      setState(() {
+        _systemDarkScheme = dark;
+        _systemLightScheme = light;
+      });
+    } catch (_) {
+      // No dynamic colour support on this build — brand palette stays.
+    }
+  }
+
+  /// Maps the five OS tonal palettes onto Flutter's [ColorScheme] using the
+  /// legacy tone recipe (the same one `dynamic_color`'s scheme converter
+  /// applies). A `fromSeed` baseline fills the newer surface-container roles
+  /// from the wallpaper hue in between the overrides.
+  static ColorScheme _youScheme(
+    mcu.CorePalette palette, // ignore: deprecated_member_use
+    Brightness brightness,
+  ) {
+    final dark = brightness == Brightness.dark;
+    Color c(mcu.TonalPalette p, int tone) => Color(p.get(tone) | 0xFF000000);
+    final (p, s, t, n, nv) = (
+      palette.primary,
+      palette.secondary,
+      palette.tertiary,
+      palette.neutral,
+      palette.neutralVariant,
+    );
+    final seed = c(p, dark ? 80 : 40);
+    final base = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot,
+    );
+    return base.copyWith(
+      primary: seed,
+      onPrimary: c(p, dark ? 20 : 100),
+      primaryContainer: c(p, dark ? 30 : 90),
+      onPrimaryContainer: c(p, dark ? 90 : 10),
+      secondary: c(s, dark ? 80 : 40),
+      onSecondary: c(s, dark ? 20 : 100),
+      secondaryContainer: c(s, dark ? 30 : 90),
+      onSecondaryContainer: c(s, dark ? 90 : 10),
+      tertiary: c(t, dark ? 80 : 40),
+      onTertiary: c(t, dark ? 20 : 100),
+      tertiaryContainer: c(t, dark ? 30 : 90),
+      onTertiaryContainer: c(t, dark ? 90 : 10),
+      error: c(palette.error, dark ? 80 : 40),
+      onError: c(palette.error, dark ? 20 : 100),
+      errorContainer: c(palette.error, dark ? 30 : 90),
+      onErrorContainer: c(palette.error, dark ? 90 : 10),
+      outline: c(nv, dark ? 60 : 50),
+      outlineVariant: c(nv, dark ? 30 : 80),
+      onSurfaceVariant: c(nv, dark ? 80 : 30),
+      surface: c(n, dark ? 6 : 98),
+      onSurface: c(n, dark ? 90 : 10),
+      inverseSurface: c(n, dark ? 90 : 20),
+      onInverseSurface: c(n, dark ? 20 : 95),
+      inversePrimary: c(p, dark ? 40 : 80),
+      shadow: c(n, 0),
+      scrim: c(n, 0),
+      surfaceTint: seed,
+    );
   }
 
   @override
@@ -174,8 +264,8 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
       child: MaterialApp(
         title: 'ComeOver',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
+        theme: AppTheme.light(systemScheme: _systemLightScheme),
+        darkTheme: AppTheme.dark(systemScheme: _systemDarkScheme),
         themeMode: _themeMode,
         scaffoldMessengerKey: _messengerKey,
         builder: (context, child) {
@@ -214,6 +304,7 @@ class AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = AppScope.of(context);
     final dark = controller.themeMode != ThemeMode.light;
+    final springy = AppStyle.of(context).isMaterial;
     final screen = switch (controller.stage) {
       AppStage.booting => const SplashScreen(),
       AppStage.welcome => const WelcomeScreen(),
@@ -232,17 +323,20 @@ class AppRoot extends StatelessWidget {
         intensity: controller.reduceGlass ? 0.65 : 1,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 480),
-          switchInCurve: Curves.easeOutCubic,
+          switchInCurve: springy ? Motion.springy : Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (child, animation) {
             final curved = CurvedAnimation(
               parent: animation,
-              curve: Curves.easeOutCubic,
+              curve: springy ? Motion.springy : Curves.easeOutCubic,
             );
             return FadeTransition(
               opacity: curved,
               child: ScaleTransition(
-                scale: Tween<double>(begin: 0.985, end: 1).animate(curved),
+                scale: Tween<double>(
+                  begin: springy ? 0.93 : 0.985,
+                  end: 1,
+                ).animate(curved),
                 child: child,
               ),
             );

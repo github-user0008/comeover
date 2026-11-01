@@ -103,7 +103,6 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
         : _pressed
         ? style.pressScale
         : (_focused ? (material ? 1.025 : 1.008) : 1.0);
-
     final content = Row(
       mainAxisSize: widget.expanded ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -125,8 +124,12 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
 
     final button = AnimatedScale(
       scale: scale,
-      duration: Motion.fast,
-      curve: material ? Motion.overshoot : Motion.standard,
+      // Press feedback stays snappy; the release gets a long enough runway for
+      // the expressive spring to visibly overshoot on the material language.
+      duration: _pressed && !material
+          ? Motion.fast
+          : (material ? Motion.release : Motion.fast),
+      curve: material ? Motion.springy : Motion.standard,
       child: AnimatedContainer(
         duration: Motion.fast,
         curve: Motion.emphasizedDecelerate,

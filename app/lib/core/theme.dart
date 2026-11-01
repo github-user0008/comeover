@@ -271,8 +271,10 @@ class AppStyle extends ThemeExtension<AppStyle> {
 }
 
 class AppTheme {
-  /// Vivid violet seed. The expressive algorithm turns this into a playful,
-  /// high-chroma Material 3 palette instead of the old plum/lavender skin.
+  /// Fallback violet seed, used when the device cannot supply wallpaper
+  /// colours (web, TVs, Fire OS, Android < 12). On Android 12+ the scheme
+  /// Material You computed from the user's wallpaper is passed in as
+  /// [systemScheme] instead and is used verbatim.
   static const _materialSeed = Color(0xFF6D4AFF);
 
   static ThemeData dark({
@@ -280,6 +282,7 @@ class AppTheme {
     VisualLanguage? visual,
     TargetPlatform? platform,
     bool? web,
+    ColorScheme? systemScheme,
   }) {
     return _theme(
       brightness: Brightness.dark,
@@ -287,6 +290,7 @@ class AppTheme {
       visual: visual,
       platform: platform,
       web: web,
+      systemScheme: systemScheme,
     );
   }
 
@@ -295,6 +299,7 @@ class AppTheme {
     VisualLanguage? visual,
     TargetPlatform? platform,
     bool? web,
+    ColorScheme? systemScheme,
   }) {
     return _theme(
       brightness: Brightness.light,
@@ -302,6 +307,7 @@ class AppTheme {
       visual: visual,
       platform: platform,
       web: web,
+      systemScheme: systemScheme,
     );
   }
 
@@ -311,11 +317,15 @@ class AppTheme {
     VisualLanguage? visual,
     TargetPlatform? platform,
     bool? web,
+    ColorScheme? systemScheme,
   }) {
     final target = platform ?? defaultTargetPlatform;
     final language = visual ?? visualLanguageFor(target);
     final isWeb = web ?? kIsWeb;
-    final scheme = _scheme(brightness, language, highContrast);
+    final scheme =
+        language == VisualLanguage.materialExpressive && systemScheme != null
+        ? systemScheme
+        : _scheme(brightness, language, highContrast);
     final style = _style(scheme, language, brightness, highContrast);
 
     final base = Typography.material2021(platform: target, colorScheme: scheme);
@@ -757,6 +767,11 @@ class _ExpressivePageTransitionsBuilder extends PageTransitionsBuilder {
       curve: Motion.emphasizedDecelerate,
       reverseCurve: Motion.emphasizedAccelerate,
     );
+    final springy = CurvedAnimation(
+      parent: animation,
+      curve: Motion.springy,
+      reverseCurve: Motion.emphasizedAccelerate,
+    );
     return FadeTransition(
       opacity: curved,
       child: SlideTransition(
@@ -765,7 +780,9 @@ class _ExpressivePageTransitionsBuilder extends PageTransitionsBuilder {
           end: Offset.zero,
         ).animate(curved),
         child: ScaleTransition(
-          scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+          // The scale rides the springy curve and grows a touch past 1 before
+          // settling — the M3 Expressive "stop arriving abruptly" feel.
+          scale: Tween<double>(begin: 0.92, end: 1).animate(springy),
           child: child,
         ),
       ),

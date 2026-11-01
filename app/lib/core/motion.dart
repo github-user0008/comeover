@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
 
+import 'theme.dart';
+
 /// Material 3 Expressive motion, plus a couple of springy flourishes.
 abstract final class Motion {
   static const emphasized = Cubic(0.18, 0.0, 0.0, 1.0);
@@ -11,10 +13,18 @@ abstract final class Motion {
   static const standard = Cubic(0.2, 0.0, 0.0, 1.0);
   static const overshoot = Cubic(0.34, 1.4, 0.64, 1.0);
 
+  /// Expressive spring: ~14% overshoot before settling. Reserved for the
+  /// material visual language so entrances and button releases visibly bounce.
+  static const springy = Cubic(0.30, 1.56, 0.42, 1.0);
+
   static const fast = Duration(milliseconds: 180);
   static const medium = Duration(milliseconds: 320);
   static const slow = Duration(milliseconds: 560);
   static const glacial = Duration(milliseconds: 900);
+
+  /// Release motion for presses on the material language. Long enough for the
+  /// spring to be visible, unlike [fast] which swallows the overshoot.
+  static const release = Duration(milliseconds: 420);
 }
 
 /// A tiny spring for press/hover scale. No animation package required.
@@ -117,9 +127,10 @@ class _RiseInState extends State<RiseIn> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final springy = AppStyle.of(context).isMaterial;
     final curved = CurvedAnimation(
       parent: _controller,
-      curve: Motion.emphasizedDecelerate,
+      curve: springy ? Motion.springy : Motion.emphasizedDecelerate,
     );
     return AnimatedBuilder(
       animation: curved,
