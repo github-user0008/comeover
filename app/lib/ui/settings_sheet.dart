@@ -535,7 +535,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         const SizedBox(height: 6),
                         Text(
                           'Invites last 6 hours. Locations live in memory on your relay and are never '
-                          'written to a database. Maps © OpenStreetMap contributors, tiles © CARTO.',
+                          'written to a database. Map tiles © OpenStreetMap contributors.',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant),
                         ),

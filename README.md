@@ -23,7 +23,7 @@ Screenshots come from the web build in demo mode (`Watch a live demo`).
 
 - **Invite flow** — start a room, share a code/QR/link, the guest joins from a phone or types the
   code on a TV.
-- **Live arrival screen** — full-bleed OpenStreetMap/CARTO map, moving traveller marker, dashed
+- **Live arrival screen** — full-bleed OpenStreetMap map, moving traveller marker, dashed
   route, arrival radius, distance, ETA, countdown ring, route progress and stale-location hints.
 - **10-foot TV UI** — d-pad focus rings, overscan-safe layout, remote hints, a map-based meeting
   point picker for TVs without GPS, and a wide HUD rail.
@@ -242,7 +242,9 @@ flutter test
 - No accounts, emails, phone numbers, analytics or third-party location services.
 - Exact coordinates are relayed only to members of the room. The host can turn on approximate
   precision, and each device can pause sharing.
-- Map tiles are fetched directly from CARTO/OpenStreetMap; the relay never proxies them.
+- Map tiles are fetched directly from OpenStreetMap; the relay never proxies them. (CARTO's
+  formerly free dark/light raster basemaps now require an API key, so the app renders the muted
+  dark look itself with a colour matrix.)
 
 ComeOver is a small self-hosted project: run the relay on a machine you control, put it behind
 HTTPS if it is reachable from the internet, and keep the room code private.
