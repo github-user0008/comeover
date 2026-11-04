@@ -24,7 +24,11 @@ class MapTiles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = AppStyle.of(context);
-    Widget tilebuilder(BuildContext context, Widget tileWidget, TileImage tile) {
+    Widget tilebuilder(
+      BuildContext context,
+      Widget tileWidget,
+      TileImage tile,
+    ) {
       final tinted = ColorFiltered(
         colorFilter: ColorFilter.mode(
           style.mapTint.withValues(alpha: style.isMaterial ? 0.10 : 0.16),

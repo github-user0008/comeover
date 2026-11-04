@@ -130,6 +130,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     height: device.isTv ? 64 : 58,
                     onPressed: (app.busy || _submitting) ? null : _continue,
                   ),
+                  const SizedBox(height: 4),
+                  TextButton(
+                    onPressed: (app.busy || _submitting)
+                        ? null
+                        : () async {
+                            final ok = await app.quickDemo();
+                            if (!ok && app.errorMessage != null && mounted) {
+                              setState(() => _submitting = false);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(app.errorMessage!)),
+                                );
+                              }
+                            }
+                          },
+                    child: Text(
+                      'Just show me a live demo — no setup, no location prompt',
+                      style: Theme.of(context).textTheme.labelMedium
+                          ?.copyWith(color: scheme.primary),
+                    ),
+                  ),
                 ],
               ),
             ),

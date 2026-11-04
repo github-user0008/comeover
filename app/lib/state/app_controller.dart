@@ -35,6 +35,10 @@ typedef RealtimeFactory = RealtimeClient Function({
 });
 
 class AppController extends ChangeNotifier {
+  /// Fixed meeting point for the zero-setup web demo (San Francisco, an
+  /// area with recognizable street geometry at every zoom).
+  static const LatLng _demoMeetingPoint = LatLng(37.7793, -122.4193);
+
   AppController({
     required this.baseConfig,
     required this.prefs,
@@ -325,6 +329,22 @@ class AppController extends ChangeNotifier {
   void goHome() {
     stage = AppStage.home;
     notifyListeners();
+  }
+
+  /// Zero-setup demo for web visitors: skips profile entry and never touches
+  /// the browser's geolocation permission — the room simply runs on a fixed
+  /// meeting point with a walking demo traveller.
+  Future<bool> quickDemo() async {
+    if (busy) return false;
+    if (profile.name.isEmpty) {
+      final ok = await completeWelcome('You', '🦊');
+      if (!ok) return false;
+    }
+    return createRoom(
+      device: DeviceClass.phone,
+      at: _demoMeetingPoint,
+      startDemo: true,
+    );
   }
 
   void openJoin([String? code]) {
