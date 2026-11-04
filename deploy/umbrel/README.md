@@ -33,7 +33,7 @@ the relay address (no separate hosting, no CORS).
 4. Copy the digest printed by the workflow and pin it in `comeover/docker-compose.yml`:
 
    ```yaml
-   image: ghcr.io/<owner>/comeover-relay:0.1.0@sha256:<digest>
+   image: ghcr.io/<owner>/comeover-relay:0.2.0@sha256:<digest>
    ```
 
 5. If your GitHub owner is not `github-user0008`, update the image name in
