@@ -1,0 +1,3 @@
+# Placeholder: the Flutter web client (flutter build web output) is copied
+# here by CI before the Docker image is assembled. Without it the image
+# still serves the relay API and dashboard, just not the web app.

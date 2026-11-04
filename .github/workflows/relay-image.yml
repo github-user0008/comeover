@@ -12,10 +12,25 @@ permissions:
 
 jobs:
   publish:
-    name: Publish multi-arch relay image
+    name: Publish multi-arch relay image (with bundled web app)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Build the web client
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+      - run: |
+          cd app
+          flutter pub get
+          # Served from the relay origin, so the app correctly uses its own
+          # origin as the relay — no COMEOVER_SERVER define needed.
+          flutter build web --release
+          rm -rf server/web-dist/.gitkeep
+          cp -r build/web/. server/web-dist/
 
       - uses: docker/setup-qemu-action@v3
 
@@ -34,12 +49,12 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=sha
-            type=raw,value=0.1.0
 
       - id: build
         uses: docker/build-push-action@v6
         with:
-          context: ./server
+          context: .
+          file: server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

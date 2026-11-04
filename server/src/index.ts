@@ -3,6 +3,7 @@ import { Server } from 'socket.io';
 import { dashboardHtml } from './dashboard.js';
 import { DemoDirector } from './demo.js';
 import { HttpError, RoomStore, publicMember, publicMembers, publicRoom } from './rooms.js';
+import { serveWeb, wantsWeb } from './web_static.js';
 import type { DeviceKind, Member, Room, Units, Precision } from './types.js';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -41,6 +42,17 @@ async function handleHttp(req: IncomingMessage, res: ServerResponse): Promise<vo
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204).end();
+    return;
+  }
+
+  // Bundled web client: everything that isn't the API, sockets, invite
+  // pages, health probe or the relay dashboard is served from the Flutter
+  // build (the relay root becomes the installable web app).
+  if (
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    wantsWeb(url.pathname) &&
+    (await serveWeb(url.pathname, res))
+  ) {
     return;
   }
 
