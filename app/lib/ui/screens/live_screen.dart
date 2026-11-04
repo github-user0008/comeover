@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -415,6 +416,10 @@ class _MapStage extends StatelessWidget {
                       compact: true,
                       icon: Icon(Icons.pause_rounded, size: 13),
                     ),
+                  if (kIsWeb && !app.isHost && app.isLive) ...[
+                    const SizedBox(width: 8),
+                    KeepAliveToggle(app: app),
+                  ],
                   const SizedBox(width: 8),
                   GlassIconButton(
                     icon: Icons.tune_rounded,
@@ -465,6 +470,68 @@ class _MapStage extends StatelessWidget {
           ),
           const Positioned(right: 8, bottom: 6, child: MapCredit()),
         ],
+      ),
+    );
+  }
+}
+
+/// Traveller-only, web-only experimental toggle: keeps the page (and the
+/// location watcher) alive while the phone is locked by playing an
+/// inaudible audio loop. Tapping it when off shows the plain-English
+/// experimental disclosure before enabling.
+class KeepAliveToggle extends StatelessWidget {
+  const KeepAliveToggle({super.key, required this.app});
+
+  final AppController app;
+
+  Future<void> _prompt(BuildContext context) async {
+    final enabled = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Keep tracking in the background?'),
+        content: const Text(
+          'Experimental: plays a near-silent audio loop so the browser keeps '
+          'this page — and your location updates — alive while the screen is '
+          'locked or you are using another app.\n\n'
+          'Expect a small sound indicator on the lock screen and a little '
+          'extra battery use. Calls and navigation voice prompts can '
+          'interrupt it; if tracking freezes anyway, your position goes '
+          'stale for the host until you reopen the page.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Enable'),
+          ),
+        ],
+      ),
+    );
+    if (enabled == true) await app.setTravellerKeepAlive(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final on = app.travellerKeepAlive;
+    return GestureDetector(
+      onTap: () {
+        if (on) {
+          app.setTravellerKeepAlive(false);
+        } else {
+          _prompt(context);
+        }
+      },
+      child: FrostChip(
+        label: on ? 'Background on' : 'Background off',
+        compact: true,
+        tone: on ? FrostTone.live : FrostTone.neutral,
+        icon: Icon(
+          on ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          size: 13,
+        ),
       ),
     );
   }

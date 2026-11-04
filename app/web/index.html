@@ -22,5 +22,58 @@
 </head>
 <body style="background:#0A0712">
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Experimental background keep-alive for web travellers. A page that is
+    // Playing audio is treated as "in use" by mobile WebKit and is never
+    // suspended when the screen locks, so a near-silent looped WAV keeps the
+    // geolocation watcher alive through a walk. Only acts as a user of the
+    // ComeOver window API surface; the Dart side drives start/stop.
+    window.ComeOverKeepAlive = (function () {
+      var audio = null;
+      function ensure() {
+        if (audio) return audio;
+        // Flutter web ships bundle assets under assets/assets/<path>.
+        audio = document.createElement('audio');
+        audio.src = 'assets/assets/keepalive.wav';
+        audio.loop = true;
+        audio.preload = 'auto';
+        audio.setAttribute('playsinline', '');
+        audio.style.display = 'none';
+        document.body.appendChild(audio);
+        return audio;
+      }
+      return {
+        start: function () {
+          try {
+            var a = ensure();
+            a.volume = 0.25;
+            var p = a.play();
+            if (p && p.catch) p.catch(function () {});
+            return !a.paused;
+          } catch (e) {
+            return false;
+          }
+        },
+        stop: function () {
+          try {
+            if (audio) {
+              audio.pause();
+              audio.currentTime = 0;
+            }
+            return true;
+          } catch (e) {
+            return false;
+          }
+        },
+        playing: function () {
+          try {
+            return !!(audio && !audio.paused && !audio.ended);
+          } catch (e) {
+            return false;
+          }
+        },
+      };
+    })();
+  </script>
 </body>
 </html>

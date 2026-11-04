@@ -40,8 +40,15 @@ Screenshots come from the web build in demo mode (`Watch a live demo`).
   moving even between location updates.
 - **Private by default** — rooms live in memory for six hours, invite codes are short-lived, the host
   can coarsen precision or set an arrival radius, and sharing can be paused at any time.
+- **Stale-position alerts (Android)** — when a host shares a room, the app asks for notification
+  permission once and from then on raises a "position went stale" alert whenever the traveller's
+  phone stops updating in the background, so the host is never left watching a frozen map.
+- **Web background keep-alive (experimental)** — web travellers can opt in to a near-silent audio
+  loop that keeps the page (and their location updates) alive while the screen is locked, with a
+  plain-English disclosure on the toggle.
 - **Demo mode** — a simulated walking/driving traveller so TVs, emulators and screenshots work
-  without a second phone.
+  without a second phone, plus a zero-setup "show me a live demo" entry point on the web welcome
+  screen.
 
 ## Repository layout
 

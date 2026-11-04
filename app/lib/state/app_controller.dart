@@ -8,9 +8,11 @@ import '../core/device.dart';
 import '../core/format.dart';
 import '../core/geo.dart';
 import '../data/api.dart';
+import '../data/keepalive.dart';
 import '../data/location_service.dart';
 import '../data/prefs.dart';
 import '../data/realtime.dart';
+import '../data/stale_alerter.dart';
 import '../models/member.dart';
 import '../models/travel_estimate.dart';
 
@@ -435,6 +437,9 @@ class AppController extends ChangeNotifier {
       stage = AppStage.live;
       pendingJoinCode = '';
       _routeStarts.clear();
+      // Honour an existing keep-alive opt-in (join is a user gesture, so the
+      // browser can accept the audio activation right here).
+      if (travellerKeepAliveActive) BackgroundKeepAlive.start();
       if (fix != null) {
         _myFix = fix;
         _applyFix(fix, forceSend: true);
@@ -674,6 +679,10 @@ class AppController extends ChangeNotifier {
     _stopWatch();
     _ticker?.cancel();
     _ticker = null;
+    // Leaving a room always ends the background keep-alive and drops any
+    // half-raised stale-alert bookkeeping.
+    BackgroundKeepAlive.stop();
+    StaleAlerter.instance.reset();
     await prefs.saveSession(null);
     room = null;
     me = null;
@@ -824,6 +833,21 @@ class AppController extends ChangeNotifier {
   }
 
   /* -------------------------------------------------------------- settings */
+
+  /// Traveller-side opt-in for the experimental web background keep-alive
+  /// (inaudible looping audio that stops mobile browsers from suspending the
+  /// page). Persists per browser; applies immediately when in a live room.
+  Future<void> setTravellerKeepAlive(bool value) async {
+    await prefs.saveTravellerKeepAlive(value);
+    if (travellerKeepAliveActive) {
+      if (value) BackgroundKeepAlive.start();
+    } else {
+      BackgroundKeepAlive.stop();
+    }
+    notifyListeners();
+  }
+
+  bool get travellerKeepAlive => prefs.travellerKeepAlive;
 
   Future<void> setUnits(UnitSystem value) async {
     units = value;
@@ -982,6 +1006,11 @@ class AppController extends ChangeNotifier {
 
   void _startTicker() {
     if (_ticker != null) return;
+    // First time any host enters a live room: ask for notification
+    // permission on behalf of stale alerts (once ever, stored in prefs).
+    if (stage == AppStage.live && isHost) {
+      unawaited(StaleAlerter.instance.ensurePermission(this));
+    }
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       now = DateTime.now();
       final value = estimate;
@@ -991,9 +1020,26 @@ class AppController extends ChangeNotifier {
         // Leave it un-dismissed: the live screen shows a celebration once and
         // calls dismissArrival().
       }
+      // Host-side stale alerts, and the web keep-alive health check.
+      unawaited(StaleAlerter.instance.evaluate(this));
+      unawaited(_healthCheckKeepAlive());
       notifyListeners();
     });
   }
+
+  /// If the traveller opted into the experimental background keep-alive,
+  /// silently restart the loop whenever the browser has paused it (a call or
+  /// a Maps voice prompt can interrupt it). No-op on native platforms.
+  Future<void> _healthCheckKeepAlive() async {
+    if (!travellerKeepAliveActive) return;
+    try {
+      if (!BackgroundKeepAlive.playing()) BackgroundKeepAlive.start();
+    } catch (_) {}
+  }
+
+  /// The keep-alive toggle only applies to web guests actually en route.
+  bool get travellerKeepAliveActive =>
+      prefs.travellerKeepAlive && !isHost && isLive;
 
   void _prune() {
     final liveIds = members.map((m) => m.id).toSet();

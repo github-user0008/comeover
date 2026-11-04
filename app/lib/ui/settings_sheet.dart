@@ -528,7 +528,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         Text(
                           'In a room, the arrival countdown stays on your lock screen: a Live Update on '
                           'Android 16 (including the Samsung Now Bar) and a Live Activity with Dynamic '
-                          'Island on iOS 16.1 and newer.',
+                          'Island on iOS 16.1 and newer. Hosts get a notification when someone\'s '
+                          'position goes stale.',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant),
                         ),

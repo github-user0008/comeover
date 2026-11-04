@@ -91,6 +91,8 @@ class Prefs {
   static const _liveStatusKey = 'settings.liveStatus';
   static const _tvKey = 'settings.forceTv';
   static const _themeKey = 'settings.theme';
+  static const _keepAliveKey = 'settings.travellerKeepAlive';
+  static const _notifyAskedKey = 'settings.staleNotifyAsked';
   static const _sessionKey = 'session.current';
   static const _recentKey = 'rooms.recent';
 
@@ -148,6 +150,20 @@ class Prefs {
       await _prefs.setBool(_tvKey, value);
     }
   }
+
+  /// Traveller-only experimental opt-in: keep the web page alive while the
+  /// phone is locked so background location keeps flowing.
+  bool get travellerKeepAlive => _prefs.getBool(_keepAliveKey) ?? false;
+
+  Future<void> saveTravellerKeepAlive(bool value) =>
+      _prefs.setBool(_keepAliveKey, value);
+
+  /// Whether the app has already asked the OS for notification permission on
+  /// behalf of stale-position alerts (asked once, never nagged again).
+  bool get staleNotifyAsked => _prefs.getBool(_notifyAskedKey) ?? false;
+
+  Future<void> saveStaleNotifyAsked(bool value) =>
+      _prefs.setBool(_notifyAskedKey, value);
 
   ThemeMode get themeMode {
     final raw = _prefs.getString(_themeKey);
