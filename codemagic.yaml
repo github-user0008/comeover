@@ -1,0 +1,74 @@
+# Codemagic CI — builds ComeOver for iOS in the cloud (no Mac required).
+#
+# Set up once (details in docs/ios-cloud-build.md):
+#   1. Apple Developer Program membership ($99/yr) and an app record named
+#      ComeOver with the bundle ID below.
+#   2. An App Store Connect API key (Issuer ID, Key ID, .p8) added in Codemagic
+#      under Teams → Integrations → App Store Connect, named "ASC_KEY".
+#   3. Connect the GitHub repo, add this workflow, press Start.
+#
+# Every push produces an ipa and uploads it to TestFlight; installable on the
+# registered iPhone ~10 minutes later. Builds expire after 90 days and the
+# next push replaces them.
+
+workflows:
+  ios-testflight:
+    name: ComeOver — iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      vars:
+        # Keep in sync with pubspec/ios project if the app is ever renamed.
+        BUNDLE_ID: dev.comeover.comeover
+        BUNDLE_ID_EXTENSION: dev.comeover.comeover.LiveActivity
+        APP_SCHEME: Runner
+        # Set these in the Codemagic UI (encrypted), not in this file:
+        #   APP_STORE_CONNECT_ISSUER_ID / KEY_ID / PRIVATE_KEY via the
+        #   Team integrations; ASC key name referenced below.
+      app_store_connect: ASC_KEY
+    scripts:
+      - name: Toolchain check
+        script: |
+          flutter --version
+          xcodebuild -version
+          pod --version
+
+      - name: Fetch packages
+        script: |
+          flutter pub get
+
+      - name: Import CocoaPods
+        script: |
+          cd ios
+          pod install
+
+      - name: Wire extension signing metadata
+        script: |
+          # The Live Activity extension must exist as a proper target with its
+          # own bundle id; the checked-in project already ships with
+          # dev.comeover.comeover / .LiveActivity. This step only warns if
+          # something drifted.
+          grep -q dev.comeover.comeover.LiveActivity ios/Runner.xcodeproj/project.pbxproj ||
+            (echo "Live Activity bundle id missing" && exit 1)
+
+      - name: Build ipa
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist \
+            --no-codesign=false
+
+      - name: Resolve signing and stage build
+        script: |
+          find /Users/builder/programs -type d -maxdepth 2
+          ipa_path=$(find build/ios -name '*.ipa' | head -n 1)
+          echo "IPA at $ipa_path"
+
+    publishing:
+      app_store_connect:
+        # ASC_KEY holds issuer/key of the App Store Connect API key.
+        auth: integration
+        submit_to_testflight: true
+        beta_group_names:
+          - ComeOver Testers
+        skip_waiting_for_build_processing: false
