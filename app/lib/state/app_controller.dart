@@ -569,10 +569,7 @@ class AppController extends ChangeNotifier {
       me = _firstWhereOrNull(mapped, (m) => m.id == you.id) ?? you;
     }
     _prune();
-    if (stage == AppStage.hosting && others.any((m) => m.canTrack)) {
-      stage = AppStage.live;
-      _startTicker();
-    }
+    _maybeEnterLive();
     notifyListeners();
   }
 
@@ -587,6 +584,23 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Hosting → live also fires when a trackable guest's first location
+  /// arrives: the `member:joined` broadcast can be missed entirely (see
+  /// `_onMemberLocation`), so the location stream is the recovery path.
+  void _maybeEnterLive() {
+    if (stage != AppStage.hosting) return;
+    final selfId = me?.id;
+    if (others.any((m) => m.id != selfId && m.canTrack)) {
+      stage = AppStage.live;
+      _startTicker();
+    }
+  }
+
+  /// Test hook: simulate the relay's `member:location` push without sockets.
+  @visibleForTesting
+  void ingestMemberLocation(String memberId, MemberLocation location) =>
+      _onMemberLocation(memberId, location);
+
   void _onMemberLocation(String memberId, MemberLocation location) {
     if (memberId == me?.id) return;
     final index = members.indexWhere((m) => m.id == memberId);
@@ -600,6 +614,12 @@ class AppController extends ChangeNotifier {
     if (focusedMemberId == null && !isHost && updated.isHost) {
       focusedMemberId = updated.id;
     }
+    // The host may have missed `member:joined` (the guest's REST join can
+    // land before the host's socket has joined the room channel). The
+    // guest's first location update is the follow-up evidence that the
+    // lobby can become live — otherwise the host stays on the invite
+    // screen until a manual reload.
+    _maybeEnterLive();
     notifyListeners();
   }
 
