@@ -23,16 +23,16 @@ jobs:
           flutter-version: 3.47.9
           channel: stable
           cache: true
-      - name: Bundle the web build into server/web-dist
+      - name: Bundle the web build into ./web-dist
         run: |
           cd app
           flutter pub get
           # Served from the relay origin, so the app correctly uses its own
           # origin as the relay — no COMEOVER_SERVER define needed.
           flutter build web --release
-          rm -rf ../server/web-dist/.gitkeep
-          cp -r build/web/. ../server/web-dist/
-          ls ../server/web-dist | head
+          rm -rf ../web-dist
+          cp -r build/web ../web-dist
+          ls ../web-dist | head
 
       - uses: docker/setup-qemu-action@v3
 
@@ -61,6 +61,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-contexts: |
+            web-src=${{ github.workspace }}/web-dist
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

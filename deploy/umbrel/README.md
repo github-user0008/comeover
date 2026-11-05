@@ -39,17 +39,17 @@ the relay address (no separate hosting, no CORS).
 5. If your GitHub owner is not `github-user0008`, update the image name in
    `comeover/docker-compose.yml`. Keep the tag in step with `version:` in `umbrel-app.yml`.
 
-To build and push manually instead, first bundle the web client (or skip it — the image still
-builds with just the placeholder and serves only the API/dashboard):
+To build and push manually instead, first bundle the web client, then pass it as a build context:
 
 ```bash
 cd app
 flutter pub get && flutter build web --release
-rm -f ../server/web-dist/.gitkeep && cp -r build/web/. ../server/web-dist/
+cp -r build/web ../web-dist
 cd ../server
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --tag ghcr.io/<owner>/comeover-relay:0.2.0 \
+  --build-context web-src=../app/build/web \
   --push ..
 ```
 

@@ -20,10 +20,11 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
 
-# The Flutter web client, built by CI (or manually, see deploy/umbrel/README.md)
-# into server/web-dist/ before this image is assembled. When web-dist only has
-# the placeholder, the relay serves the API/dashboard as before.
-COPY web-dist ./web
+# The Flutter web client arrives as an additional build context (web-src)
+# provided by CI (or manually via --build-context web-src=<app>/build/web).
+# Without it the build fails loudly; the previous bundled-in-placeholder
+# approach proved fragile with subdirectory Dockerfiles.
+COPY --from=web-src . ./web
 
 EXPOSE 8787
 USER node
