@@ -56,15 +56,17 @@ class DeviceProfile {
         : tablet
         ? DeviceClass.tablet
         : DeviceClass.phone;
-    final base = tv ? 16.0 : 0.0;
+    final base = tv
+        ? const EdgeInsets.fromLTRB(42, 32, 42, 48)
+        : EdgeInsets.zero;
     return DeviceProfile(
       kind: kind,
       size: size,
       overscan: EdgeInsets.fromLTRB(
-        base + media.padding.left,
-        base + media.padding.top,
-        base + media.padding.right,
-        base + media.padding.bottom,
+        base.left + media.padding.left,
+        base.top + media.padding.top,
+        base.right + media.padding.right,
+        base.bottom + media.padding.bottom,
       ),
       textScale: scaleOverride ?? media.textScaler.scale(1),
     );

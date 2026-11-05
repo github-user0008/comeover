@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../core/device.dart';
 import '../core/theme.dart';
 
 /// Animated backdrop. Android gets a vivid, faster-moving Material 3
@@ -327,11 +328,13 @@ class PageFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final tv = media.navigationMode == NavigationMode.directional;
-    final overscan = tv ? 28.0 : 0.0;
+    // TVs overscan up to ~5% per edge; the bottom bezel crops the most, so the
+    // margins are asymmetric instead of a uniform inset. Everything that isn't
+    // the fullscreen map gets pushed inside the visible picture area. Goes
+    // through DeviceProfile so the settings' "TV layout" override applies too.
+    final overscan = DeviceProfile.of(context).overscan;
     return SafeArea(
-      minimum: EdgeInsets.all(overscan),
+      minimum: overscan,
       child: Padding(
         padding: padding,
         child: Align(

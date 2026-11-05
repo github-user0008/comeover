@@ -152,6 +152,7 @@ class _LiveScreenState extends State<LiveScreen> {
       app: app,
       estimate: estimate,
       wide: wide,
+      isTv: device.isTv,
       dark: dark,
       map: _map,
       onReady: () {
@@ -244,6 +245,7 @@ class _MapStage extends StatelessWidget {
     required this.app,
     required this.estimate,
     required this.wide,
+    required this.isTv,
     required this.dark,
     required this.map,
     required this.onReady,
@@ -257,6 +259,7 @@ class _MapStage extends StatelessWidget {
   final AppController app;
   final TravelEstimate? estimate;
   final bool wide;
+  final bool isTv;
   final bool dark;
   final MapController map;
   final VoidCallback onReady;
@@ -431,8 +434,9 @@ class _MapStage extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: wide ? 18 : 12,
-            bottom: wide ? 18 : 228,
+            // TV bezels crop ~5% per edge; keep the zoom cluster inside it.
+            left: wide ? (isTv ? 50 : 18) : 12,
+            bottom: wide ? (isTv ? 56 : 18) : 228,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -468,7 +472,11 @@ class _MapStage extends StatelessWidget {
               ],
             ),
           ),
-          const Positioned(right: 8, bottom: 6, child: MapCredit()),
+          Positioned(
+            right: isTv ? 52 : 8,
+            bottom: isTv ? 50 : 6,
+            child: const MapCredit(),
+          ),
         ],
       ),
     );
@@ -882,7 +890,9 @@ class _Rail extends StatelessWidget {
           device.isTv ? 20 : 14,
           12,
           device.isTv ? 28 : 14,
-          12,
+          // The rail is the full height of the screen; a TV bezel crops the
+          // bottom most, so give the last rows room to breathe.
+          device.isTv ? 30 : 12,
         ),
         child: FocusTraversalGroup(
           policy: ReadingOrderTraversalPolicy(),
@@ -991,34 +1001,28 @@ class _Rail extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          if (onDemo != null) ...[
-                            Expanded(
-                              child: ExpressiveButton(
-                                label: 'Demo walk',
-                                icon: Icons.auto_awesome_rounded,
-                                tone: ExpressiveTone.glass,
-                                height: 46,
-                                expanded: true,
-                                onPressed: onDemo,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Expanded(
-                            child: ExpressiveButton(
-                              label: app.isHost ? 'Close room' : 'Leave',
-                              icon: app.isHost
-                                  ? Icons.close_rounded
-                                  : Icons.logout_rounded,
-                              tone: ExpressiveTone.danger,
-                              height: 46,
-                              expanded: true,
-                              onPressed: onLeave,
-                            ),
-                          ),
-                        ],
+                      // Full-width rows: ellipsized labels ("Demo w…",
+                      // "Close ro…") defeat the purpose on a 10-foot screen.
+                      if (onDemo != null) ...[
+                        ExpressiveButton(
+                          label: 'Demo walk',
+                          icon: Icons.auto_awesome_rounded,
+                          tone: ExpressiveTone.glass,
+                          height: device.isTv ? 52 : 46,
+                          expanded: true,
+                          onPressed: onDemo,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      ExpressiveButton(
+                        label: app.isHost ? 'Close room' : 'Leave',
+                        icon: app.isHost
+                            ? Icons.close_rounded
+                            : Icons.logout_rounded,
+                        tone: ExpressiveTone.danger,
+                        height: device.isTv ? 52 : 46,
+                        expanded: true,
+                        onPressed: onLeave,
                       ),
                     ],
                   ),
@@ -1452,7 +1456,7 @@ class _EstimateSummary extends StatelessWidget {
           value.arrived
               ? 'At the meeting point'
               : '${motionLabel(value.traveller.location?.speed)} · approaching from the ${value.compass}',
-          maxLines: 1,
+          maxLines: dense ? 1 : 2,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall
               ?.copyWith(color: scheme.onSurfaceVariant),

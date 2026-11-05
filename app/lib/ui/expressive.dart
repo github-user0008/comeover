@@ -889,12 +889,17 @@ class StatValue extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Flexible(
-              child: Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.displaySmall
-                    ?.copyWith(color: accent ?? scheme.onSurface, fontSize: 38),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: accent ?? scheme.onSurface,
+                    fontSize: 38,
+                  ),
+                ),
               ),
             ),
             if (unit != null) ...[
