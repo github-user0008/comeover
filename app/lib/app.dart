@@ -79,6 +79,8 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   bool _flashIsError = false;
   Timer? _flashTimer;
   int _flashSeq = 0;
+  final Map<String, DateTime> _flashSeen = {};
+  DateTime _flashExpires = DateTime.fromMillisecondsSinceEpoch(0);
 
   /// Wallpaper-derived hue on Android 12+ (Material You). Null means the
   /// device could not provide dynamic colours and the app falls back to its
@@ -215,6 +217,12 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   }
 
   void _onChanged() {
+    // Watchdog: if the dismissal Timer is ever starved, any controller
+    // heartbeat still retires an expired banner.
+    if (_flash != null && DateTime.now().isAfter(_flashExpires)) {
+      _flashTimer?.cancel();
+      setState(() => _flash = null);
+    }
     if (_controller.themeMode != _themeMode) {
       setState(() => _themeMode = _controller.themeMode);
     }
@@ -240,6 +248,24 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
     final isTv =
         _controller.forceTv ?? (_controller.isTelevision || _profileTv);
     if (isTv) {
+      // No SnackBar should survive once the TV banner takes over notices —
+      // a SnackBar shown before the profile was known would otherwise sit
+      // stuck behind the banners forever.
+      _messengerKey.currentState?.clearSnackBars();
+      // Repeating the identical message must not restart the countdown:
+      // socket reconnect attempts fire "Can't reach the relay." every few
+      // seconds, and a fresh 4s timer per event would pin the banner on
+      // screen forever. Also skip re-shows of the same message within
+      // 15s so a retry loop can't strobe the banner.
+      final now = DateTime.now();
+      final lastVisible =
+          _flashSeen[message] ?? now.subtract(const Duration(hours: 1));
+      final visibleNow =
+          _flash == message && (_flashTimer?.isActive ?? false);
+      if (!visibleNow && now.difference(lastVisible) < const Duration(seconds: 15)) {
+        return;
+      }
+      _flashSeen[message] = now;
       _flashTimer?.cancel();
       setState(() {
         _flashSeq++;
@@ -250,6 +276,9 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
         if (!mounted) return;
         setState(() => _flash = null);
       });
+      _flashExpires = now.add(
+        const Duration(seconds: 4, milliseconds: 400),
+      );
       return;
     }
     final messenger = _messengerKey.currentState;
