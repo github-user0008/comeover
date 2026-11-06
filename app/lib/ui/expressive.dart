@@ -102,7 +102,7 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
         ? 1.0
         : _pressed
         ? style.pressScale
-        : (_focused ? (material ? 1.025 : 1.008) : 1.0);
+        : (_focused ? (material ? 1.06 : 1.04) : 1.0);
     final content = Row(
       mainAxisSize: widget.expanded ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -112,11 +112,16 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
           const SizedBox(width: 10),
         ],
         Flexible(
-          child: Text(
-            widget.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg),
+          // Scale down instead of ellipsizing: on remotes and cramped rails
+          // "Demo w…" is worse than a slightly smaller label.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              softWrap: false,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg),
+            ),
           ),
         ),
       ],
@@ -145,8 +150,10 @@ class _ExpressiveButtonState extends State<ExpressiveButton> {
             colors: bg,
           ),
           border: Border.all(
-            color: _focused ? scheme.secondary : border,
-            width: _focused ? 2 : 1,
+            // 10-foot rule: a subtle hairline reads as nothing from a sofa —
+            // the focus ring is deliberately loud.
+            color: _focused ? Colors.white : border,
+            width: _focused ? 3 : 1,
           ),
           boxShadow: material
               ? [
@@ -266,8 +273,8 @@ class _GlassIconButtonState extends State<GlassIconButton> {
           shape: BoxShape.circle,
           color: scheme.surfaceContainerHigh,
           border: Border.all(
-            color: _focused ? scheme.primary : style.chipBorder,
-            width: _focused ? 2 : 1,
+            color: _focused ? Colors.white : style.chipBorder,
+            width: _focused ? 3 : 1,
           ),
           boxShadow: [
             BoxShadow(
@@ -296,6 +303,14 @@ class _GlassIconButtonState extends State<GlassIconButton> {
         ),
       );
     }
+
+    // 10-foot feedback: whatever the underlying style, a focused icon button
+    // visibly grows so the remote position is unmistakable.
+    result = AnimatedScale(
+      duration: Motion.fast,
+      scale: _focused ? 1.14 : 1.0,
+      child: result,
+    );
 
     if (widget.tooltip != null) {
       result = Tooltip(message: widget.tooltip!, child: result);
@@ -704,18 +719,25 @@ class _ToggleItemState<T> extends State<_ToggleItem<T>> {
         onTap: widget.onTap,
         onFocusChange: (value) => setState(() => _focused = value),
         customBorder: const StadiumBorder(),
-        child: AnimatedContainer(
+        child: AnimatedScale(
           duration: Motion.fast,
-          curve: Motion.emphasizedDecelerate,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            color: widget.selected ? scheme.primary : Colors.transparent,
-            border: Border.all(
-              color: _focused ? scheme.secondary : Colors.transparent,
-              width: 2,
+          scale: _focused ? 1.06 : 1.0,
+          child: AnimatedContainer(
+            duration: Motion.fast,
+            curve: Motion.emphasizedDecelerate,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              // Unselected + focused gets a tinted fill so the d-pad position
+              // reads from across the room; selected stays solid.
+              color: widget.selected
+                  ? scheme.primary
+                  : (_focused ? scheme.primary.withValues(alpha: 0.22) : null),
+              border: Border.all(
+                color: _focused ? Colors.white : Colors.transparent,
+                width: 2,
+              ),
             ),
-          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -745,6 +767,7 @@ class _ToggleItemState<T> extends State<_ToggleItem<T>> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

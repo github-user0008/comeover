@@ -180,8 +180,10 @@ class _LiveScreenState extends State<LiveScreen> {
           Row(
             children: [
               Expanded(child: map),
+              // The rail is the only 10-foot control surface; on TV it earns
+              // extra width so paired action buttons keep full labels.
               SizedBox(
-                width: device.isTv ? 430 : 390,
+                width: device.isTv ? 500 : 390,
                 child: _Rail(
                   app: app,
                   device: device,
@@ -964,16 +966,18 @@ class _Rail extends StatelessWidget {
                         const SizedBox(height: 10),
                         _Freshness(estimate: estimate!, now: app.now),
                       ],
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 18),
                       ExpressiveButton(
                         label: estimate == null ? 'Share invite' : 'Share ETA',
                         icon: Icons.ios_share_rounded,
                         expanded: true,
-                        height: 54,
+                        height: device.isTv ? 56 : 54,
                         autofocus: device.isTv,
                         onPressed: onShare,
                       ),
                       const SizedBox(height: 10),
+                      // Pair the secondary actions so the big screen is
+                      // used for the map, not for one button per row.
                       Row(
                         children: [
                           Expanded(
@@ -985,7 +989,7 @@ class _Rail extends StatelessWidget {
                                   ? Icons.play_arrow_rounded
                                   : Icons.pause_rounded,
                               tone: ExpressiveTone.tonal,
-                              height: 48,
+                              height: device.isTv ? 52 : 48,
                               expanded: true,
                               onPressed: () =>
                                   app.setSharingPaused(!app.sharingPaused),
@@ -995,35 +999,42 @@ class _Rail extends StatelessWidget {
                           GlassIconButton(
                             icon: Icons.tune_rounded,
                             tooltip: 'Settings',
-                            size: 48,
+                            size: device.isTv ? 52 : 48,
                             onPressed: onSettings,
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
-                      // Full-width rows: ellipsized labels ("Demo w…",
-                      // "Close ro…") defeat the purpose on a 10-foot screen.
-                      if (onDemo != null) ...[
-                        ExpressiveButton(
-                          label: 'Demo walk',
-                          icon: Icons.auto_awesome_rounded,
-                          tone: ExpressiveTone.glass,
-                          height: device.isTv ? 52 : 46,
-                          expanded: true,
-                          onPressed: onDemo,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      ExpressiveButton(
-                        label: app.isHost ? 'Close room' : 'Leave',
-                        icon: app.isHost
-                            ? Icons.close_rounded
-                            : Icons.logout_rounded,
-                        tone: ExpressiveTone.danger,
-                        height: device.isTv ? 52 : 46,
-                        expanded: true,
-                        onPressed: onLeave,
+                      Row(
+                        children: [
+                          if (onDemo != null) ...[
+                            Expanded(
+                              child: ExpressiveButton(
+                                label: 'Demo walk',
+                                icon: Icons.auto_awesome_rounded,
+                                tone: ExpressiveTone.glass,
+                                height: device.isTv ? 52 : 46,
+                                expanded: true,
+                                onPressed: onDemo,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: ExpressiveButton(
+                              label: app.isHost ? 'Close room' : 'Leave',
+                              icon: app.isHost
+                                  ? Icons.close_rounded
+                                  : Icons.logout_rounded,
+                              tone: ExpressiveTone.danger,
+                              height: device.isTv ? 52 : 46,
+                              expanded: true,
+                              onPressed: onLeave,
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),

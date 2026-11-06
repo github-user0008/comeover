@@ -38,7 +38,11 @@ Future<void> openSettings(BuildContext context) async {
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.all(24),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700, maxHeight: 900),
+          // TVs get a wider sheet so settings can sit two-up per row.
+          constraints: BoxConstraints(
+            maxWidth: device.isTv ? 960 : 700,
+            maxHeight: device.isTv ? 620 : 900,
+          ),
           child: const SettingsSheet(),
         ),
       ),
@@ -149,11 +153,12 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     ],
                   ),
                 ),
-                GlassIconButton(
-                  icon: Icons.close_rounded,
-                  tooltip: 'Close',
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+                 GlassIconButton(
+                   icon: Icons.close_rounded,
+                   tooltip: 'Close',
+                   autofocus: device.isTv,
+                   onPressed: () => Navigator.of(context).pop(),
+                 ),
               ],
             ),
           ),
@@ -247,57 +252,84 @@ class _SettingsSheetState extends State<SettingsSheet> {
                   _section(
                     context,
                     title: 'Appearance',
-                    child: Column(
-                      children: [
-                        TogglePill<ThemeMode>(
-                          value: app.themeMode,
-                          onChanged: app.setThemeMode,
-                          options: const [
-                            ToggleOption(
-                              value: ThemeMode.dark,
-                              label: 'Night',
-                              icon: Icons.dark_mode_outlined,
-                            ),
-                            ToggleOption(
-                              value: ThemeMode.light,
-                              label: 'Day',
-                              icon: Icons.light_mode_outlined,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        _ToggleRow(
-                          title: 'Liquid glass',
-                          subtitle: 'Frosted blur and rim light. Turn off on older TVs for smoothness.',
-                          value: !app.reduceGlass,
-                          onChanged: (value) => app.setReduceGlass(!value),
-                        ),
-                        _ToggleRow(
-                          title: 'Expressive motion',
-                          subtitle: 'Springy presses, drifting aurora and countdown animations.',
-                          value: !app.reduceMotion,
-                          onChanged: (value) => app.setReduceMotion(!value),
-                        ),
-                        const SizedBox(height: 6),
-                        _LabeledRow(
-                          title: 'TV layout',
-                          subtitle: 'Bigger buttons, focus rings and overscan padding.',
-                          child: TogglePill<String>(
-                            value: app.forceTv == null
-                                ? 'auto'
-                                : (app.forceTv! ? 'on' : 'off'),
-                            expanded: false,
-                            onChanged: (value) => app.setForceTv(
-                              value == 'auto' ? null : value == 'on',
-                            ),
-                            options: const [
-                              ToggleOption(value: 'auto', label: 'Auto'),
-                              ToggleOption(value: 'on', label: 'On'),
-                              ToggleOption(value: 'off', label: 'Off'),
+                    child: FocusTraversalGroup(
+                      policy: ReadingOrderTraversalPolicy(),
+                      child: LayoutBuilder(
+                        builder: (context, box) {
+                          // On the wide (TV) sheet the two appearance toggles
+                          // sit side by side instead of stacking full-width.
+                          final twoUp = box.maxWidth >= 560;
+                          final glassToggle = _ToggleRow(
+                            title: 'Liquid glass',
+                            subtitle: twoUp
+                                ? 'Turn off on older TVs for smoothness.'
+                                : 'Frosted blur and rim light. Turn off on older TVs for smoothness.',
+                            value: !app.reduceGlass,
+                            onChanged: (value) =>
+                                app.setReduceGlass(!value),
+                          );
+                          final motionToggle = _ToggleRow(
+                            title: 'Expressive motion',
+                            subtitle: twoUp
+                                ? 'Springy presses and countdown animations.'
+                                : 'Springy presses, drifting aurora and countdown animations.',
+                            value: !app.reduceMotion,
+                            onChanged: (value) =>
+                                app.setReduceMotion(!value),
+                          );
+                          return Column(
+                            children: [
+                              TogglePill<ThemeMode>(
+                                value: app.themeMode,
+                                onChanged: app.setThemeMode,
+                                options: const [
+                                  ToggleOption(
+                                    value: ThemeMode.dark,
+                                    label: 'Night',
+                                    icon: Icons.dark_mode_outlined,
+                                  ),
+                                  ToggleOption(
+                                    value: ThemeMode.light,
+                                    label: 'Day',
+                                    icon: Icons.light_mode_outlined,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              if (twoUp)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: glassToggle),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: motionToggle),
+                                  ],
+                                )
+                              else ...[glassToggle, motionToggle],
+                              const SizedBox(height: 6),
+                              _LabeledRow(
+                                title: 'TV layout',
+                                subtitle:
+                                    'Bigger buttons, focus rings and overscan padding.',
+                                child: TogglePill<String>(
+                                  value: app.forceTv == null
+                                      ? 'auto'
+                                      : (app.forceTv! ? 'on' : 'off'),
+                                  expanded: false,
+                                  onChanged: (value) => app.setForceTv(
+                                    value == 'auto' ? null : value == 'on',
+                                  ),
+                                  options: const [
+                                    ToggleOption(value: 'auto', label: 'Auto'),
+                                    ToggleOption(value: 'on', label: 'On'),
+                                    ToggleOption(value: 'off', label: 'Off'),
+                                  ],
+                                ),
+                              ),
                             ],
-                          ),
-                        ),
-                      ],
+                          );
+                        },
+                      ),
                     ),
                   ),
                   _section(
@@ -343,10 +375,10 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     _section(
                       context,
                       title: 'This room',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _LabeledRow(
+                      child: LayoutBuilder(
+                        builder: (context, box) {
+                          final twoUp = box.maxWidth >= 560;
+                          final precision = _LabeledRow(
                             title: 'Hide exact distance',
                             subtitle: app.isHost
                                 ? 'Everyone sees a ~110 m area instead of a precise point.'
@@ -358,52 +390,53 @@ class _SettingsSheetState extends State<SettingsSheet> {
                               onChanged: (value) =>
                                   app.setPrecision(approximate: value),
                             ),
-                          ),
-                          _LabeledRow(
+                          );
+                          final pause = _LabeledRow(
                             title: 'Pause my sharing',
-                            subtitle: 'The room stays open; your dot freezes until you turn it back on.',
+                            subtitle:
+                                'Your dot freezes until you turn it back on.',
                             child: Switch.adaptive(
                               value: app.sharingPaused,
                               onChanged: app.setSharingPaused,
                             ),
-                          ),
-                          if (app.isHost) ...[
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _LabeledRow(
-                                    title: 'Arrival radius',
-                                    subtitle: 'Turns the countdown into a celebration inside this circle.',
-                                    child: Text(
-                                      formatDistance(
-                                        app.room!.settings.arrivalRadius,
-                                        app.units,
-                                      ),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall,
-                                    ),
+                          );
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (twoUp)
+                                Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: precision),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: pause),
+                                  ],
+                                )
+                              else ...[precision, pause],
+                              if (app.isHost) ...[
+                                const SizedBox(height: 10),
+                                Text(
+                                  'Arrival radius · ${formatDistance(app.room!.settings.arrivalRadius, app.units)}',
+                                  style:
+                                      Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Slider(
+                                  value: app.room!.settings.arrivalRadius
+                                      .clamp(15, 200),
+                                  min: 15,
+                                  max: 200,
+                                  divisions: 37,
+                                  label: formatDistance(
+                                    app.room!.settings.arrivalRadius,
+                                    app.units,
                                   ),
+                                  onChanged: app.setArrivalRadius,
                                 ),
                               ],
-                            ),
-                            Slider(
-                              value: app.room!.settings.arrivalRadius.clamp(
-                                15,
-                                200,
-                              ),
-                              min: 15,
-                              max: 200,
-                              divisions: 37,
-                              label: formatDistance(
-                                app.room!.settings.arrivalRadius,
-                                app.units,
-                              ),
-                              onChanged: app.setArrivalRadius,
-                            ),
-                          ],
-                        ],
+                            ],
+                          );
+                        },
                       ),
                     ),
                   _section(
