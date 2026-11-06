@@ -449,10 +449,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           controller: _serverController,
                           keyboardType: TextInputType.url,
                           autocorrect: false,
+                          textInputAction: TextInputAction.done,
                           decoration: const InputDecoration(
                             hintText: 'http://192.168.1.20:8787',
                             prefixIcon: Icon(Icons.dns_outlined),
                           ),
+                          // Enter (and the remote's center button on TV)
+                          // immediately saves + tests — no hunting for the
+                          // Save button at the bottom.
+                          onSubmitted: (_) => _testRelay(),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -491,45 +496,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             ],
                           ),
                         ],
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ExpressiveButton(
-                                label: _testing ? 'Testing…' : 'Save & test',
-                                icon: Icons.wifi_tethering_rounded,
-                                tone: ExpressiveTone.tonal,
-                                height: 52,
-                                expanded: true,
-                                onPressed: _testing ? null : _testRelay,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            ExpressiveButton(
-                              label: 'Reset',
-                              tone: ExpressiveTone.glass,
-                              height: 52,
-                              onPressed: () {
-                                _serverController.text =
-                                    app.baseConfig.serverUrl;
-                                app.setServerOverride(null);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            LiveRelayStatus(status: app.relayStatus),
-                            const Spacer(),
-                            Text(
-                              Uri.tryParse(app.config.serverUrl)?.authority ??
-                                  app.config.serverUrl,
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(color: scheme.onSurfaceVariant),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -577,6 +543,67 @@ class _SettingsSheetState extends State<SettingsSheet> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          // Sticky footer: the relay save action must never be scroll-lost.
+          // On TVs a d-pad cannot wheel-scroll the list, so a Save & test
+          // buried at the bottom of the scroll was unreachable — the relay
+          // the user typed was never saved or confirmed.
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+              child: Glass(
+                borderRadius: 26,
+                blur: 14,
+                padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final wideEnough = box.maxWidth >= 560;
+                    final saveButton = ExpressiveButton(
+                      label: _testing ? 'Testing…' : 'Save & test',
+                      icon: Icons.wifi_tethering_rounded,
+                      tone: ExpressiveTone.tonal,
+                      height: 52,
+                      autofocus: device.isTv,
+                      onPressed: _testing ? null : _testRelay,
+                    );
+                    final resetButton = GlassIconButton(
+                      icon: Icons.restart_alt_rounded,
+                      tooltip: 'Reset relay to ${app.baseConfig.serverUrl}',
+                      onPressed: () {
+                        _serverController.text = app.baseConfig.serverUrl;
+                        app.setServerOverride(null);
+                      },
+                    );
+                    if (wideEnough) {
+                      return Row(
+                        children: [
+                          LiveRelayStatus(status: app.relayStatus),
+                          const Spacer(),
+                          saveButton,
+                          const SizedBox(width: 10),
+                          resetButton,
+                        ],
+                      );
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            LiveRelayStatus(status: app.relayStatus),
+                            const Spacer(),
+                            resetButton,
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(width: double.infinity, child: saveButton),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),

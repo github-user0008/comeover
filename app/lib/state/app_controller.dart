@@ -931,6 +931,7 @@ class AppController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    final changed = normalized != serverOverride;
     serverOverride = normalized;
     await prefs.saveServerOverride(normalized);
     _config = baseConfig.copyWith(serverUrl: normalized, publicUrl: normalized);
@@ -938,6 +939,12 @@ class AppController extends ChangeNotifier {
     _api = ComeOverApi(config: _config);
     _location = LocationService(config: _config)
       ..setBackgroundUpdates(liveStatusEnabled);
+    // Rooms live on the relay that started them: switching servers drops the
+    // realtime socket and the open session can't follow. Say so out loud —
+    // otherwise the change looks like it "didn't take".
+    if (changed && _session != null) {
+      notice = 'Relay saved. Finish or leave this room, then rejoin on the new address.';
+    }
     notifyListeners();
     return true;
   }

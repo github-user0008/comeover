@@ -439,6 +439,10 @@ class AppTheme {
             language == VisualLanguage.liquidGlass ? 26 : 32,
           ),
         ),
+        // Bottom-heavy dialog insets: on TVs the bezel crops the bottom
+        // ~5%, and every dialog opens before the app can know its device —
+        // so keep all dialogs inside the common safe area by default.
+        insetPadding: const EdgeInsets.fromLTRB(48, 36, 48, 56),
         titleTextStyle: text.headlineSmall,
         contentTextStyle: text.bodyMedium,
       ),
