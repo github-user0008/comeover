@@ -66,6 +66,19 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   String? _lastError;
   String? _lastNotice;
   ThemeMode _themeMode = ThemeMode.dark;
+  // Last TV verdict from the MaterialApp builder's DeviceProfile, so notices
+  // can use the same switch the rest of the UI uses (covers the manual
+  // "TV layout: On" override on devices where autodetect fails).
+  bool _profileTv = false;
+
+  // TVs get a non-interactive, auto-dismissing flash banner instead of a
+  // SnackBar: the d-pad cannot reliably reach a SnackBar's action, and a
+  // banner that sits there blinking with an unusable OK is worse than no
+  // banner at all.
+  String? _flash;
+  bool _flashIsError = false;
+  Timer? _flashTimer;
+  int _flashSeq = 0;
 
   /// Wallpaper-derived hue on Android 12+ (Material You). Null means the
   /// device could not provide dynamic colours and the app falls back to its
@@ -193,6 +206,7 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _flashTimer?.cancel();
     _linkSubscription?.cancel();
     unawaited(LiveStatusCoordinator.instance.shutdown());
     _controller.removeListener(_onChanged);
@@ -223,6 +237,21 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
   }
 
   void _showMessage(String message, {required bool isError}) {
+    final isTv =
+        _controller.forceTv ?? (_controller.isTelevision || _profileTv);
+    if (isTv) {
+      _flashTimer?.cancel();
+      setState(() {
+        _flashSeq++;
+        _flash = message;
+        _flashIsError = isError;
+      });
+      _flashTimer = Timer(const Duration(seconds: 4), () {
+        if (!mounted) return;
+        setState(() => _flash = null);
+      });
+      return;
+    }
     final messenger = _messengerKey.currentState;
     if (messenger == null) return;
     final scheme = Theme.of(messenger.context).colorScheme;
@@ -276,6 +305,9 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
             forceTv:
                 controller.forceTv ?? (controller.isTelevision ? true : null),
           );
+          if (profile.isTv != _profileTv) {
+            _profileTv = profile.isTv;
+          }
           final media = MediaQuery.of(context);
           final scaled = profile.isTv
               ? media.copyWith(
@@ -284,12 +316,83 @@ class _ComeOverAppState extends State<ComeOverApp> with WidgetsBindingObserver {
                   ),
                 )
               : media;
-          return DeviceScope(
+          final content = DeviceScope(
             profile: profile,
             child: MediaQuery(
               data: scaled,
               child: child ?? const SizedBox.shrink(),
             ),
+          );
+          if (!profile.isTv || _flash == null) return content;
+          // TV flash banner: sits inside the overscan trim at the top,
+          // ignores pointer/focus (the d-pad navigates underneath it), and
+          // dismisses itself after a few seconds.
+          final scheme = Theme.of(context).colorScheme;
+          return Stack(
+            children: [
+              content,
+              Positioned(
+                top: profile.overscan.top,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: Container(
+                        key: ValueKey('$_flashSeq:$_flash'),
+                        margin: const EdgeInsets.symmetric(horizontal: 48),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
+                        constraints: const BoxConstraints(maxWidth: 720),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: _flashIsError
+                                ? scheme.error
+                                : scheme.primary,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              blurRadius: 18,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _flashIsError
+                                  ? Icons.error_outline_rounded
+                                  : Icons.info_outline_rounded,
+                              size: 22,
+                              color: _flashIsError
+                                  ? scheme.error
+                                  : scheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                _flash!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
         home: const AppRoot(),

@@ -303,8 +303,16 @@ class _MapStage extends StatelessWidget {
               minZoom: 3,
               maxZoom: 19,
               backgroundColor: style.ink,
-              interactionOptions: const InteractionOptions(
+              // flutter_map's keyboard panning grabs focus on appearance and
+              // swallows every arrow key — on TV that hijacks the d-pad, so
+              // the user can only pan the map and never reach the rail
+              // buttons. Disable it entirely on TV; arrows then move focus
+              // between the real controls.
+              interactionOptions: InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                keyboardOptions: isTv
+                    ? const KeyboardOptions.disabled()
+                    : const KeyboardOptions(),
               ),
               onMapReady: onReady,
               onPositionChanged: (_, hasGesture) {

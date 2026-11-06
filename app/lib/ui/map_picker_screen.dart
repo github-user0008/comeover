@@ -120,6 +120,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               backgroundColor: style.ink,
               interactionOptions: const InteractionOptions(
                 flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                // The picker's own Focus() already maps arrows to nudges;
+                // the map's built-in keyboard handler would otherwise
+                // autofocus itself and double-handle (or swallow) keys.
+                keyboardOptions: KeyboardOptions.disabled(),
               ),
               onMapReady: () => setState(() => _mapReady = true),
               onPositionChanged: (camera, hasGesture) {
